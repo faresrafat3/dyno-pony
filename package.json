@@ -1,0 +1,17 @@
+{
+  "name": "dyno-pony",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Fares' agent mode + skill arsenal for DSH: one merged Cordis plugin (38 tools), 14 dynamic skills, prose skills, and the test oracle that keeps docs true.",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "test:preflight": "node --test tests/preflight.test.cjs",
+    "merge": "node scripts/merge-plugins.cjs",
+    "install": "bash scripts/install.sh",
+    "collect": "bash scripts/collect.sh"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22.19"
+  }
+}
