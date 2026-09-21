@@ -53,7 +53,7 @@ const EXPECTED_TOOLS = [
 // ---------------------------------------------------------------------------
 // Mount the bundle once with a fake harness/ctx, exactly like the host would.
 // ---------------------------------------------------------------------------
-function mountBundle() {
+function mountBundle(opts = {}) {
   const body = fs.readFileSync(MERGED, 'utf8');
   const captured = [];
   const harness = {
@@ -67,6 +67,13 @@ function mountBundle() {
     provide: () => () => {},
     effect: (cb) => { try { const d = cb(); return typeof d === 'function' ? d : () => {}; } catch { return () => {}; } },
   };
+  // The read-only registry façade a real host always exposes (host-runner
+  // guard.js: { register, schemas, get }). Passing a list lets a test hand the
+  // bundle a registry that contradicts what its own source declares.
+  if (opts.registry) {
+    const views = () => opts.registry.map((name) => ({ name, description: name, parameters: {} }));
+    ctx.tools = { schemas: views, get: (name) => views().find((s) => s.name === name) };
+  }
   const plugin = new Function('harness', 'ctx', body)(harness, ctx);
   assert.ok(plugin && typeof plugin.apply === 'function', 'bundle must return { apply }');
   plugin.apply(ctx);
@@ -201,10 +208,58 @@ test('counts: the merge manifest, the bundle markers, and the mounted tools agre
   const skillDirs = fs.readdirSync(SKILLS_DIR).filter((d) => fs.statSync(path.join(SKILLS_DIR, d)).isDirectory());
   assert.equal(c.skills, skillDirs.length,
     `counts.cjs says ${c.skills} skills, dynamic-skills/ holds ${skillDirs.length} dirs`);
+
+  // The generated header states the merge arithmetic. It is stamped by the
+  // merger from what it actually merged, so it must agree with the bundle it
+  // was written into — otherwise the artifact carries its own stale count (E6).
+  const header = fs.readFileSync(MERGED, 'utf8').slice(0, fs.readFileSync(MERGED, 'utf8').indexOf('return {'));
+  const stated = header.match(/Tool count: (\d+) \(orig\+sentinels\) \+ (\d+) \(ultimate\) = (\d+) tools/);
+  assert.ok(stated, 'the merged bundle header must state its tool count');
+  assert.equal(Number(stated[3]), c.tools,
+    `the bundle header claims ${stated[3]} tools, ${c.tools} actually mount`);
+  assert.equal(Number(stated[1]) + Number(stated[2]), Number(stated[3]),
+    'the header arithmetic must add up');
 });
 
-test('rebuild.sh prints the derived counts, never remembered ones', { skip: BASH_MISSING && 'bash is not available on this machine' }, () => {
-  assert.equal(REBUILD.status, 0, `rebuild.sh exited ${REBUILD.status}:\n${REBUILD.stderr}`);
+// ---------------------------------------------------------------------------
+// The `ultimate` tool's count. E6 says a surface that reports "N tools" must
+// derive N from what it actually registered, and P4 in AGENT-ERGONOMICS.md is
+// the failure that rule exists for: `ultimate` said 37 while the registry held
+// 38. The expectation below is THIS file's EXPECTED_TOOLS, which is independent
+// of packages/ultimate.js — so a literal in that source cannot satisfy it.
+// ---------------------------------------------------------------------------
+test('ultimate: its arsenal is exactly the bundle\'s tools, and its count is the registry\'s', async () => {
+  const tools = mountBundle({ registry: EXPECTED_TOOLS });
+  const ultimate = tools.find((t) => t.name === 'ultimate');
+  assert.ok(ultimate, 'the bundle must register an `ultimate` tool');
+
+  const text = await ultimate.execute({ action: 'status' }, { action: 'status' });
+
+  // The declared list must BE the bundle's tool set: one `- \`name\` — role`
+  // line per tool. The length is asserted first so an unparsed or emptied list
+  // fails loudly instead of comparing nothing (E9).
+  const declared = [...text.matchAll(/^- `([a-z0-9_]+)` — /gm)].map((m) => m[1]);
+  assert.equal(declared.length, EXPECTED_TOOLS.length,
+    `ultimate lists ${declared.length} arsenal tools, the bundle registers ${EXPECTED_TOOLS.length}`);
+  assert.deepEqual(declared.slice().sort(), EXPECTED_TOOLS.slice().sort(),
+    'ultimate\'s declared arsenal has drifted from the tools the bundle actually registers');
+
+  // And the number it prints must be the one the registry handed it.
+  assert.ok(text.includes(`Total tools in the arsenal: ${EXPECTED_TOOLS.length}.`),
+    `expected a registry-derived count of ${EXPECTED_TOOLS.length}, got:\n${text}`);
+});
+
+test('ultimate: reports a MISSING arsenal tool instead of an unchanged total', async () => {
+  const short = EXPECTED_TOOLS.filter((n) => n !== 'sphinx');
+  const tools = mountBundle({ registry: short });
+  const ultimate = tools.find((t) => t.name === 'ultimate');
+  const text = await ultimate.execute({ action: 'status' }, { action: 'status' });
+  assert.ok(text.includes(`Total tools in the arsenal: ${short.length} of ${EXPECTED_TOOLS.length} registered`),
+    `a registry one tool short must change the total, got:\n${text}`);
+  assert.ok(text.includes('MISSING: sphinx'), text);
+});
+
+test('rebuild.sh prints the derived counts, never remembered ones', { skip: BASH_MISSING && 'bash is not available on this machine' }, () => {  assert.equal(REBUILD.status, 0, `rebuild.sh exited ${REBUILD.status}:\n${REBUILD.stderr}`);
   const out = REBUILD.stdout;
   const c = counts.compute();
 

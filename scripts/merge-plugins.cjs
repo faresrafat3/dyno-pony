@@ -36,7 +36,11 @@ const ORDER = [
   'ultimate.js',      // one-shot "arm everything" persona overlay
 ];
 
-const HEADER =
+// The header states the counts this run actually merged (E6: a counter is
+// derived, never hardcoded — a header claiming 37 beside a bundle holding 38 is
+// the same lie, printed into the artifact instead of into the docs). Called
+// after the ORDER loop, so both numbers are measured, not remembered.
+const header = (origCount, ultimateCount) =>
   "// Source-of-truth for the dyno-pony dynamic plugin (v1, merged).\n" +
   "//\n" +
   "// Combines all 10 historical plugins (pony, caveman, orch, dsh-author, memo,\n" +
@@ -44,7 +48,7 @@ const HEADER =
   "// Mount it with the loader in rebuild.sh / README.md §Recovery — never paste\n" +
   "// the file into the context.\n" +
   "//\n" +
-  "// Tool count: 37 (orig+sentinels) + 1 (ultimate) = 38 tools.\n" +
+  "// Tool count: " + origCount + " (orig+sentinels) + " + ultimateCount + " (ultimate) = " + (origCount + ultimateCount) + " tools.\n" +
   "//\n" +
   "// Each section is wrapped in an IIFE so locals like `note`, `stringOutput`,\n" +
   "// `session`, `POOL_KEY` do not collide. The merged plugin keeps the exact\n" +
@@ -117,6 +121,7 @@ function extractInner(filePath) {
 }
 
 const allNames = new Set();
+const sectionCounts = {};
 const out = [];
 
 for (const f of ORDER) {
@@ -136,6 +141,7 @@ for (const f of ORDER) {
     allNames.add(n);
     namesInSection.push(n);
   }
+  sectionCounts[ns] = namesInSection.length;
   console.log(f + ': ' + namesInSection.length + ' tools [' + namesInSection.join(', ') + ']');
 
   // Each section may have multiple `harness.registerTool(ctx, X)` calls.
@@ -158,7 +164,8 @@ for (const f of ORDER) {
   out.push('    })();\n');
 }
 
-const final = HEADER + out.join('') + FOOTER;
+const ultimateCount = sectionCounts.ultimate || 0;
+const final = header(allNames.size - ultimateCount, ultimateCount) + out.join('') + FOOTER;
 fs.writeFileSync(OUT, final);
 console.log('');
 console.log('merged → ' + OUT);

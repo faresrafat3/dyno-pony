@@ -15,6 +15,18 @@ English for the record).
   file with no tests is a file that passes (now a test-file floor plus "every file declares tests
   or can fail"). `presets.test.cjs` `return`ed silently when its directory was missing, reporting
   PASS. The rule is recorded as **E9** in `AGENT-ERGONOMICS.md`.
+- **`ultimate` reported a hardcoded tool count.** It said 37 while the registry held 38 — two
+  surfaces of the same system disagreeing, which is P4 in `AGENT-ERGONOMICS.md` and the reason
+  **E6** exists. The count is now read from the sandbox's read-only registry façade
+  (`ctx.tools.schemas()`) at call time and intersected with the declared arsenal, so it follows
+  what actually registered: hand it a registry holding three tools and it says three. Where no
+  registry is reachable it says `declared` rather than printing an unmeasured number in the same
+  font as a measured one, and anything the registry is missing is named rather than silently
+  subtracted. The merged header's own `37 + 1 = 38` is now stamped by `scripts/merge-plugins.cjs`
+  from what that run merged. `tests/preflight.test.cjs` pins the declared list to the bundle's
+  `EXPECTED_TOOLS` and checks the header against the mounted count, so a drifted arsenal or a
+  stale header fails the oracle; `tests/ultimate.test.cjs` hands the tool registries that
+  contradict its source.
 
 ## [1.1.0] — 2026-09-18
 

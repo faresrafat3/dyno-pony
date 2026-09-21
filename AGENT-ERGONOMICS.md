@@ -68,7 +68,16 @@ counts) and let the session discover its own IDs via `cordis_inspect_self`. (P1)
 
 Any surface that reports "N tools" must derive N from what it actually registered. A
 hardcoded 37 next to a registry holding 38 is a small lie that teaches the agent to distrust
-all counts. (P4 — open: `ultimate`'s arsenal counter still hardcodes; see ledger)
+all counts. (P4)
+
+The sandbox `ctx` hands every host half a read-only registry façade — `ctx.tools.schemas()`
+(`guard.js`), reachable with no `inject` declaration — so the derivation is available exactly
+where the number is printed. `ultimate` reads its count from there at call time and intersects
+it with the names it declares, because `schemas()` also lists the host's own tools; the merged
+bundle's header is stamped by `scripts/merge-plugins.cjs` from what that run actually merged.
+Where no registry is reachable the surface says `declared` rather than printing an unmeasured
+number in the same font as a measured one, and the count it does print names anything the
+registry is missing — so a half-registered bundle reads like one.
 
 ### E7 — Contract asymmetry gets documented as asymmetry
 
@@ -117,8 +126,14 @@ Four verbs, each one command. An agent arriving cold reads only the README and c
 
 ## Open ledger (next accretions, in cost order)
 
-1. **E6 violation live:** `ultimate`'s `totalTools` is a build-time constant (37) that
-   disagrees with the registry (38). Derive it from the captured tool list at mount time.
+1. ~~**E6 violation live:** `ultimate`'s `totalTools` is a build-time constant (37) that
+   disagrees with the registry (38). Derive it from the captured tool list at mount time.~~
+   **Closed 2026-09-21.** The count is now read from the live registry (`ctx.tools.schemas()`)
+   at call time and intersected with the declared arsenal; `declared` is printed when there is
+   nothing to measure against. `tests/preflight.test.cjs` pins the declared list to the bundle's
+   own `EXPECTED_TOOLS`, and `tests/ultimate.test.cjs` hands the tool registries that contradict
+   its source — eight assertions fail against the restored hardcode, and the deployed bundle was
+   re-checked after install.
 2. **Deployment-as-default:** an agent preset row (or profile bundle) that mounts the loader
    at session start would collapse E4 from three calls to zero. Blocked on a composition
    decision Fares owns (host-plane vs preset-plane — see `editing-cordis-compositions` skill,

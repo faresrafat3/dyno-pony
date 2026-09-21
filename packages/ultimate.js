@@ -7,8 +7,11 @@
 //
 // Shape: manifest (1 tool, 3 actions) + persona overlay.
 // What it does NOT do: it does NOT call cordis_run on 13 pluginIds. The
-// dyno-pony merged plugin is already loaded and registers all 37 tools.
-// The merge is upstream of this skill. This skill's job is to:
+// dyno-pony merged plugin is already loaded and registers the whole arsenal.
+// The merge is upstream of this skill. The tool count this skill reports is
+// read back from the live registry at call time (E6: counters are derived,
+// never hardcoded), never from a literal or from the length of the list
+// below. This skill's job is to:
 //   1. Set a session flag (s.ultimate.armed = true / false)
 //   2. Return a persona overlay prompt the model reads silently
 //   3. List what is "armed" so the model and Fares can introspect
@@ -46,6 +49,9 @@ return {
       'sphinx':        { preset: 'sentinel-mode', role: 'context budget governor (audit/checkpoint/predict)' },
       'drift':         { preset: 'sentinel-mode', role: 'live loop/contradiction detector (loop/contradict/silent)' },
       'second_order':  { preset: 'sentinel-mode', role: 'think one step past the change (trace/blast/gate)' },
+      // this tool itself — declared so the list IS the whole bundle, and so the
+      // registry cross-check in tests/preflight.test.cjs has nothing to exclude
+      'ultimate':      { preset: 'ultimate-mode', role: 'arm/disarm this overlay itself (on/off/status)' },
       'dsh_author_inspect':  { preset: 'standalone', role: '4-step recipe to inspect a dynamic plugin' },
       'dsh_author_define':   { preset: 'standalone', role: 'cordis_define parameter template' },
       'dsh_author_run':      { preset: 'standalone', role: 'cordis_run pattern' },
@@ -77,7 +83,67 @@ return {
     };
 
     const arsenalList = Object.keys(ARSENAL).sort();
-    const totalTools = arsenalList.length;
+
+    // E6 — the tool count is READ FROM THE REGISTRY, never from a literal and
+    // never from the length of the list above. A hardcoded 37 standing next to
+    // a registry holding 38 is the lie this replaces (AGENT-ERGONOMICS.md P4):
+    // two surfaces of the same system disagreeing teaches the agent to
+    // distrust every count it is handed.
+    //
+    // `ctx.tools` is the sandbox's read-only registry façade (host-runner
+    // guard.js: { register, schemas, get }), reachable without an `inject`
+    // declaration. `schemas()` lists the tools visible to THIS package's scope,
+    // which includes the host's own tools — so the measured number is the
+    // intersection with the names declared above, not the raw array length.
+    // That intersection is the true statement "how much of the arsenal is
+    // actually available to you".
+    const registryToolNames = function () {
+      try {
+        const registry = ctx && ctx.tools;
+        if (!registry || typeof registry.schemas !== 'function') return null;
+        const schemas = registry.schemas();
+        if (!Array.isArray(schemas)) return null;
+        return schemas
+          .map(function (s) { return s && s.name; })
+          .filter(function (n) { return typeof n === 'string'; });
+      } catch (_e) {
+        return null;
+      }
+    };
+
+    // `confirmed` separates a MEASURED count from an unmeasured one. With no
+    // registry reachable there is nothing to measure against, so the number
+    // falls back to the declared list AND every surface that prints it says so.
+    // A silent fallback would be the same lie in a smaller font.
+    const arsenalState = function () {
+      const live = registryToolNames();
+      if (live === null) return { count: arsenalList.length, confirmed: false, missing: [] };
+      const present = {};
+      for (let i = 0; i < live.length; i++) present[live[i]] = true;
+      const missing = arsenalList.filter(function (n) { return !present[n]; });
+      return { count: arsenalList.length - missing.length, confirmed: true, missing: missing };
+    };
+
+    const arsenalLine = function (st) {
+      if (!st.confirmed) {
+        return 'Total tools in the arsenal: ' + st.count + ' (declared — no tools registry on this ctx).';
+      }
+      if (st.missing.length) {
+        return 'Total tools in the arsenal: ' + st.count + ' of ' + arsenalList.length +
+          ' registered — MISSING: ' + st.missing.join(', ') + '.';
+      }
+      return 'Total tools in the arsenal: ' + st.count + '.';
+    };
+
+    const availabilityLine = function (st) {
+      if (!st.confirmed) {
+        return 'The DSH arsenal is available (' + st.count + ' tools declared — no tools registry on this ctx to verify against).';
+      }
+      if (st.missing.length) {
+        return st.count + ' of ' + arsenalList.length + ' arsenal tools are available — MISSING: ' + st.missing.join(', ') + '.';
+      }
+      return 'All ' + st.count + ' tools in the DSH arsenal are now available.';
+    };
 
     const setArmed = function (val) {
       const s = session && session.current && session.current();
@@ -99,7 +165,7 @@ return {
         return note([
           '# ULTIMATE MODE — ARMED',
           '',
-          'All ' + totalTools + ' tools in the DSH arsenal are now available.',
+          availabilityLine(arsenalState()),
           'You are running in the "go all out" persona.' + why,
           '',
           '## Persona overlay (read silently, do not narrate)',
@@ -133,10 +199,12 @@ return {
 
       off: function () {
         setArmed(false);
+        const st = arsenalState();
         return note([
           '# ULTIMATE MODE — DISARMED',
           '',
-          'Returned to baseline. The 37 dyno-pony tools are still registered;',
+          'Returned to baseline. The ' + st.count + ' dyno-pony tools are still registered' +
+            (st.confirmed ? '' : ' (declared)') + ';',
           'this only flips the persona overlay off.',
           '',
           'Re-arm with: "ultimate mode" / "go all out" / "ultimate on".',
@@ -145,11 +213,12 @@ return {
 
       status: function () {
         const armed = isArmed();
+        const st = arsenalState();
         return note([
           '# ULTIMATE MODE — STATUS',
           '',
           'Armed: ' + (armed ? '**YES**' : '**no**') + '.',
-          'Total tools in the arsenal: ' + totalTools + '.',
+          arsenalLine(st),
           '',
           '## Arsenal',
           '',
@@ -189,6 +258,10 @@ return {
 
     const dispose = harness.registerTool(ctx, harness.defineTool(tool));
     ctx.effect(function () { return dispose; }, 'ultimate:dispose-on-fork');
-    console.log('[ultimate] registered tool "ultimate" (actions: on, off, status). Arsenal: ' + totalTools + ' tools.');
+    // Read the count only AFTER registering, so this tool is part of the
+    // measurement rather than an exception to it.
+    const mounted = arsenalState();
+    console.log('[ultimate] registered tool "ultimate" (actions: on, off, status). Arsenal: ' +
+      mounted.count + ' tools' + (mounted.confirmed ? ' (registry-confirmed)' : ' (declared)') + '.');
   },
 };

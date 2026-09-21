@@ -1,4 +1,4 @@
-// ultimate test — 4 standard + 3 optional + 1 bonus + 3 live execute = 11 tests
+// ultimate test — 4 standard + 3 optional + 1 bonus + 7 registry/execute = 15 tests
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const PACKAGES_DIR = path.join(__dirname, '..', 'packages');
 
-function mount(file) {
+function mount(file, opts = {}) {
   const registered = new Map();
   const effects = [];
   const services = new Map();
@@ -25,6 +25,15 @@ function mount(file) {
     effect: (cb) => { const d = cb(); effects.push(d); return d; },
     provide: (n, v) => { services.set(n, v); return () => services.delete(n); },
   };
+  // A real host always exposes this read-only registry façade (host-runner
+  // guard.js: { register, schemas, get }), reachable with no `inject`
+  // declaration. `opts.registry` fakes its tool list, so the derivation in
+  // ultimate.js can be exercised without booting a DSH host — and, crucially,
+  // can be handed a list that CONTRADICTS the source's own list.
+  if (opts.registry) {
+    const views = () => opts.registry.map((name) => ({ name, description: name, parameters: {} }));
+    ctx.tools = { schemas: views, get: (name) => views().find((s) => s.name === name) };
+  }
   const body = fs.readFileSync(path.join(PACKAGES_DIR, file), 'utf8');
   const fn = new Function('ctx', 'harness', 'console', 'btoa', 'atob', 'TextEncoder', 'TextDecoder', body);
   const plugin = fn(ctx, harness, console, btoa, atob, TextEncoder, TextDecoder);
@@ -37,6 +46,18 @@ async function call(registered, name, params = {}) {
   if (!tool) throw new Error('tool not found: ' + name);
   const value = await tool.execute(params, params);
   return tool.output.render({}, value);
+}
+
+// The declared arsenal, read out of `status` on a host with NO registry — the
+// only path on which the tool lists what it declares rather than what it
+// measured. Used to build registries that contradict the declaration.
+// tests/preflight.test.cjs is what pins this set to the bundle's real tools.
+async function declaredNames() {
+  const { registered } = mount('ultimate.js');
+  const blocks = await call(registered, 'ultimate', { action: 'status' });
+  const names = [...blocks[0].text.matchAll(/^- `([a-z0-9_]+)` — /gm)].map((m) => m[1]);
+  assert.ok(names.length >= 30, `status listed only ${names.length} arsenal entries — the list is not being parsed`);
+  return names;
 }
 
 // 4 required
@@ -91,19 +112,54 @@ test('ultimate: tool render returns a text block', () => {
 });
 
 // 3 live execute
-test('ultimate: on action returns the persona overlay and confirms 37 tools', async () => {
-  const { registered } = mount('ultimate.js');
+test('ultimate: on action returns the persona overlay', async () => {
+  const declared = await declaredNames();
+  const { registered } = mount('ultimate.js', { registry: declared });
   const blocks = await call(registered, 'ultimate', { action: 'on' });
   assert.ok(blocks[0].text.includes('ULTIMATE MODE'));
   assert.ok(blocks[0].text.includes('ARMED'));
-  assert.ok(blocks[0].text.includes('37 tools'));
+  assert.ok(blocks[0].text.includes(`All ${declared.length} tools in the DSH arsenal are now available.`), blocks[0].text);
   assert.ok(blocks[0].text.includes('Persona overlay'));
 });
 test('ultimate: off action returns the disarm message', async () => {
-  const { registered } = mount('ultimate.js');
+  const declared = await declaredNames();
+  const { registered } = mount('ultimate.js', { registry: declared });
   const blocks = await call(registered, 'ultimate', { action: 'off' });
   assert.ok(blocks[0].text.includes('DISARMED'));
   assert.ok(blocks[0].text.includes('baseline'));
+  assert.ok(blocks[0].text.includes(`The ${declared.length} dyno-pony tools are still registered`), blocks[0].text);
+});
+
+// ---------------------------------------------------------------------------
+// E6 — the count is derived, never hardcoded. Each of these hands the tool a
+// registry that CONTRADICTS its own source list; a literal cannot follow, a
+// measurement must. The declaration-against-bundle check lives in preflight,
+// so the expectation here never comes from ultimate.js's own list.
+// ---------------------------------------------------------------------------
+test('ultimate: the count follows the registry, not a literal', async () => {
+  const { registered } = mount('ultimate.js', { registry: ['ponytail', 'caveman', 'sphinx'] });
+  const blocks = await call(registered, 'ultimate', { action: 'status' });
+  assert.ok(blocks[0].text.includes('Total tools in the arsenal: 3 of'),
+    `expected a registry-derived count of 3, got:\n${blocks[0].text}`);
+});
+test('ultimate: names what the registry is missing instead of a stale total', async () => {
+  const declared = await declaredNames();
+  const registry = declared.filter((n) => n !== 'sphinx');
+  const { registered } = mount('ultimate.js', { registry });
+  const blocks = await call(registered, 'ultimate', { action: 'status' });
+  assert.ok(blocks[0].text.includes(`Total tools in the arsenal: ${declared.length - 1} of ${declared.length} registered`), blocks[0].text);
+  assert.ok(blocks[0].text.includes('MISSING: sphinx'), blocks[0].text);
+});
+test('ultimate: counts its own arsenal, not every tool the host exposes', async () => {
+  const declared = await declaredNames();
+  const { registered } = mount('ultimate.js', { registry: declared.concat(['read', 'write', 'bash']) });
+  const blocks = await call(registered, 'ultimate', { action: 'status' });
+  assert.ok(blocks[0].text.includes(`Total tools in the arsenal: ${declared.length}.`), blocks[0].text);
+});
+test('ultimate: with no registry reachable the count declares itself unmeasured', async () => {
+  const { registered } = mount('ultimate.js'); // the fake ctx exposes no ctx.tools
+  const blocks = await call(registered, 'ultimate', { action: 'status' });
+  assert.ok(blocks[0].text.includes('(declared — no tools registry on this ctx)'), blocks[0].text);
 });
 test('ultimate: status action returns the arsenal list', async () => {
   const { registered } = mount('ultimate.js');
