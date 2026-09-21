@@ -1,7 +1,7 @@
 ---
 name: diagnose
 description: Disciplined diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose", "debug this", "what's wrong with", reports something broken / throwing / failing / slow / flaky / regressed, or hands you a stack trace with no obvious cause.
-whenToUse: "Run a 6-phase diagnosis loop: (1) build a tight feedback loop, (2) reproduce and minimise, (3) hypothesise with 3-5 ranked candidates, (4) instrument, (5) fix + regression test, (6) cleanup. Each phase has a completion criterion; do not skip. The skill is designed to prevent the most common debugging failure: jumping to a hypothesis before you have a loop that goes red on this bug."
+whenToUse: "6-phase loop: (1) tight feedback loop, (2) reproduce + minimise, (3) 3-5 ranked hypotheses, (4) instrument, (5) fix + regression test, (6) cleanup. Criterion per phase; do not skip. Prevents the classic failure: hypothesizing before a loop goes red on this bug."
 metadata:
   category: engineering
   scope: debugging
@@ -19,7 +19,7 @@ Before showing commands/outputs/artifacts: **redact every secret** (`<REDACTED>`
 
 ## Phase 1: Build a feedback loop
 
-**This is the skill.** Tight pass/fail signal going red on *this* bug finds the cause; staring without one never does.
+**This is the skill.** Tight pass/fail going red on *this* bug finds the cause; staring without one never does.
 
 ### Construction options, roughly ordered
 
@@ -36,13 +36,13 @@ Before showing commands/outputs/artifacts: **redact every secret** (`<REDACTED>`
 
 ### Tighten the loop
 
-Treat as product. Once *a* loop exists: faster? (skip init, narrow scope.) Sharper? (assert exact symptom, not "didn't crash".) More deterministic? (pin time, seed RNG, isolate FS, freeze net.)
+Treat as product. Once *a* loop exists: faster (skip init, narrow scope)? Sharper (assert exact symptom, not "didn't crash")? More deterministic (pin time, seed RNG, isolate FS, freeze net)?
 
 30s flaky loop ≈ none. 2s deterministic loop = superpower.
 
 ### Non-deterministic bugs
 
-Goal: **higher reproduction rate**. Loop trigger 100×, parallelise, narrow timing. 50%-flake debuggable; 1% is not.
+Goal: **higher repro rate**. Trigger loop 100×, parallelise, narrow timing. 50%-flake debuggable; 1% is not.
 
 ### When no loop is possible
 
@@ -50,14 +50,14 @@ Stop and say so. List attempts. Ask user for: (a) environment access, (b) redact
 
 ### Completion criterion
 
-Done when you name **one command** (script/test/curl) **already run ≥once** (show invocation + redacted output):
+Done when you name **one command** (script/test/curl) **already run ≥1** (invocation + redacted output):
 
 - [ ] **Red-capable**: drives bug path, asserts exact symptom.
 - [ ] **Deterministic**: same verdict every run (or pinned high repro rate).
 - [ ] **Fast**: seconds, not minutes.
 - [ ] **Agent-runnable**: no human in loop.
 
-Reading code to theorize before this command exists = the failure this skill prevents. **Stop.**
+Theorizing from code before this command exists = the failure this skill prevents. **Stop.**
 
 ## Phase 2: Reproduce + minimise
 
@@ -67,14 +67,13 @@ Run loop. Watch it go red.
 - [ ] Reproducible (or high rate if nondeterministic).
 - [ ] Exact symptom captured.
 
-**Minimise:** cut inputs/callers/config/data/steps **one at a time**, re-run after each. Keep only load-bearing.
-Done when removing any remainder turns loop green.
+**Minimise:** cut inputs/callers/config/data/steps **one at a time**, re-run each. Keep only load-bearing. Done when removing any remainder turns the loop green.
 
 ## Phase 3: Hypothesise
 
-Generate **3–5 ranked hypotheses** before testing any. Each **falsifiable**: "If X, then changing Y removes bug / changing Z worsens it." No prediction = vibe: discard/sharpen.
+Generate **3–5 ranked hypotheses** before testing any, each **falsifiable**: "If X, changing Y removes bug / changing Z worsens it." No prediction = vibe: discard/sharpen.
 
-**Show ranked list to user** before testing. Domain knowledge re-ranks instantly. Don't block; proceed w/ your ranking if AFK.
+**Show ranked list to user** before testing (domain knowledge re-ranks instantly). Don't block; proceed w/ your ranking if AFK.
 
 ## Phase 4: Instrument
 
@@ -90,7 +89,7 @@ Each probe maps to one Phase-3 prediction. **One variable at a time.**
 
 ## Phase 5: Fix + regression test
 
-Write regression test **before** fix, but only at a **correct seam** — one exercising the **real bug pattern** at call site. Too-shallow seam (single-caller when bug needs multiple) gives false confidence. **No correct seam = the finding**: architecture prevents lockdown. Flag it.
+Regression test **before** fix, but only at a **correct seam** — one exercising the **real bug pattern** at call site. Too-shallow seam (single-caller when bug needs multiple) = false confidence. **No correct seam = the finding**: architecture prevents lockdown; flag it.
 
 If seam exists: minimised repro → failing test → watch fail → fix → watch pass → re-run Phase-1 loop on original scenario.
 

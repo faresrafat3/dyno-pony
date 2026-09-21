@@ -1,7 +1,7 @@
 ---
 name: research
 description: Delegate reading legwork to a background agent that investigates a question against primary sources and captures findings as a cited Markdown file. Use when the user wants a topic researched, docs or API facts gathered, or says "research this", "look up", "what does X say", "find the docs for", or hands over a question that's too long to read in-line.
-whenToUse: "Spin up a background agent (DSH subagent) to do the reading. The subagent investigates the question against primary sources (official docs, source code, specs, first-party APIs), cites every claim, and writes a single Markdown file. The current session keeps working."
+whenToUse: "Background DSH subagent reads against primary sources (official docs, source, specs, first-party APIs), cites every claim, writes one Markdown file; current session keeps working."
 metadata:
   category: engineering
   scope: research

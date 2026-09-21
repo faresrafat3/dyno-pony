@@ -1,7 +1,7 @@
 ---
 name: to-tickets
 description: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker. Edges as text in one file per ticket locally, or native blocking links on a real tracker. Use when the user wants a spec broken into agent-grabbable slices, or says "break this into tickets", "split into vertical slices", "what are the tickets".
-whenToUse: "(1) Gather context. (2) Explore the codebase if you haven't already; look for opportunities to prefactor. (3) Draft vertical slices, each sized to fit in a fresh context window. (4) Quiz the user on granularity and blocking edges. (5) Publish approved tickets to the configured tracker (local markdown by default, via the `tracker` skill). Each ticket is ready-for-agent by construction."
+whenToUse: "(1) Gather context. (2) Explore codebase; look to prefactor. (3) Draft vertical slices, each fitting a fresh context window. (4) Quiz user on granularity + blocking edges. (5) Publish approved tickets to configured tracker (local markdown default, `tracker` skill). Tickets ready-for-agent by construction."
 metadata:
   category: engineering
   scope: tickets

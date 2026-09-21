@@ -1,13 +1,8 @@
 # dyno-pony — the agent mode + skill arsenal for DSH
 
-Fares-localized dynamic Cordis plugins, skills, and presets for the DeepSeek Harness.
-**Verified state: 1 merged plugin, 38 tools, 14 dynamic skills — full suite green.**
-Counts are derived from disk by `scripts/counts.cjs`, and `tests/preflight.test.cjs` cross-checks
-them — it also runs `rebuild.sh`, so a stale number in any entry point turns the gate red. If this
-line and the oracle disagree, trust the oracle and fix this line.
+Fares-localized dynamic Cordis plugins, skills, presets for DeepSeek Harness. **Verified state: 1 merged plugin, 38 tools, 14 dynamic skills — suite green.** Counts derived from disk (`scripts/counts.cjs`), cross-checked by `tests/preflight.test.cjs` (+`rebuild.sh`): stale number turns gate red. Oracle beats this line on disagreement.
 
-**Start here if you are an agent driving this system:** [AGENT-ERGONOMICS.md](AGENT-ERGONOMICS.md)
-is the operating manual — principles, measured failure costs, and the four-verb cycle.
+**Agent entry:** [AGENT-ERGONOMICS.md](AGENT-ERGONOMICS.md) — operating manual: principles, measured failure costs, four-verb cycle.
 
 ## The four-verb cycle
 
@@ -30,26 +25,17 @@ docs/                   ARCHITECTURE.md · ANALYSIS.md
 scripts/                merge-plugins.cjs · counts.cjs · install.sh · collect.sh
 ```
 
-The 6 valid compositions (`baseline`, `simple`, `pony-mode`, `caveman-mode`, `sentinel-mode`,
-`ultimate-mode`) live in `~/.agent-presets/` — a runtime location, not a repo one — and are checked
-there by `tests/presets.test.cjs`. `install.sh` deliberately never writes them: mounting a preset is
-a composition decision (see the `editing-cordis-compositions` skill, "decide the plane first"), so
-it stays explicit and reversible.
+6 valid compositions (`baseline`, `simple`, `pony-mode`, `caveman-mode`, `sentinel-mode`, `ultimate-mode`) live in `~/.agent-presets/` (runtime, not repo), checked by `tests/presets.test.cjs`. `install.sh` never writes them: preset-mounting is a composition decision (`editing-cordis-compositions`, "decide the plane first") — explicit + reversible.
 
-This repo is canonical. The runtime (`~/.dsh/skills/`, `~/.dsh/dyno-pony/`) is a deployment made by
-`scripts/install.sh`. Never edit the runtime copy without `collect.sh`-ing it back.
+Repo = canonical; runtime (`~/.dsh/skills/`, `~/.dsh/dyno-pony/`) = `scripts/install.sh` deployment. Never edit runtime without `collect.sh`-ing back.
 
 ## Recovery — after any DSH restart
 
-The plugin is process-local: a restart removes all 38 tools. Restoring them is three calls.
+Plugin is process-local: restart removes all 38 tools; restore = three calls.
 
-Bundle lookup order (the oracle checks that at least one of these exists):
-`~/.dsh/dyno-pony/packages/dyno-pony.js` (deployed by install.sh) →
-`~/Projects/dyno-pony/packages/dyno-pony.js` (canonical) →
-`~/Projects/deepseek-harness/.agents/skills/dyno-pony/packages/dyno-pony.js` (legacy).
+Bundle lookup (oracle asserts ≥1 exists): `~/.dsh/dyno-pony/packages/dyno-pony.js` (deployed by install.sh) → `~/Projects/dyno-pony/packages/dyno-pony.js` (canonical) → `~/Projects/deepseek-harness/.agents/skills/dyno-pony/packages/dyno-pony.js` (legacy).
 
-**1. Define the loader** (`cordis_define`, `kind=new`, `idPrefix=dyno`, host code below —
-~700 bytes, reads the bundle from disk at apply time, tries deployed copy first):
+**1. Define the loader** (`cordis_define`, `kind=new`, `idPrefix=dyno`, host code below — ~700 bytes, reads the bundle from disk at apply time, tries deployed copy first):
 
 ```js
 const CANDIDATES = [
@@ -82,15 +68,11 @@ return {
 }
 ```
 
-**2. `cordis_run pluginId=<returned> packageId=<returned> mode=run`.** If it fails with
-`tool "X" is already registered`, a stale plugin holds that name: `cordis_inspect_self` →
-`cordis_stop pluginId=<holder>` → run again.
+**2. `cordis_run pluginId=<returned> packageId=<returned> mode=run`.** `tool "X" is already registered` = stale holder: `cordis_inspect_self` → `cordis_stop pluginId=<holder>` → rerun.
 
-**3. Verify** — `cordis_inspect_query` provider `Tool` method `listTools` must list all 38
-dyno-pony tools. A green run result alone is not evidence.
+**3. Verify** — `cordis_inspect_query` provider `Tool`/`listTools` must list all 38 tools. Green run alone ≠ evidence.
 
-> Loader sandbox facts verified 2026-09-18: `Function`/`eval` available, `process` absent,
-> `inject: ['fs']` gives `ctx.fs.resolve` + `ctx.fs.readText`, absolute paths only.
+> Sandbox (verified 2026-09-18): `Function`/`eval` yes, `process` no; `inject: ['fs']` = `ctx.fs.resolve`+`readText`, absolute paths only.
 
 ## Rebuilding the bundle
 
@@ -112,24 +94,15 @@ bash scripts/install.sh               # redeploy to the runtime
 | `parameters` (raw wrapper) | `type:'object'` + `properties` + root `required: ['name']` | per-property `required: true` → `belongs to the containing raw object schema` |
 | `output.schema` | per-property `required: true` + **explicit** `additionalProperties: false` | root `required` array → `not supported by the value schema DSL` |
 
-Both live in `tests/preflight.test.cjs` as executable assertions. Full detail with error text:
-`dynamic-skills/ponytail/SKILL.md` §Schema contract.
+Both asserted executable in `tests/preflight.test.cjs`. Full detail + error text: `dynamic-skills/ponytail/SKILL.md` §Schema contract.
 
 ## Skills
 
-**Dynamic (14, in `dynamic-skills/`, each backed by bundle tools):** ponytail · caveman ·
-orch · dsh-author · memo · plugin-test · codex · memory · workflow · trace · sphinx · drift ·
-second-order · ultimate
+**Dynamic (14, in `dynamic-skills/`, each backed by bundle tools):** ponytail · caveman · orch · dsh-author · memo · plugin-test · codex · memory · workflow · trace · sphinx · drift · second-order · ultimate
 
-**Prose (in `skills/`, no dyno-pony bundle tools):** codebase-arch · code-review · diagnose · domain ·
-dspy-lab · fallback-chain · git-guardrails · grill · handoff · implement · implement-spec ·
-model-dashboard · openresearch · prototype · questionnaire · research · to-spec · to-tickets ·
-tracker · triage · ts-deep-modules · wayfinder · webchain · writing-agents
+**Prose (in `skills/`, no dyno-pony bundle tools):** codebase-arch · code-review · diagnose · domain · dspy-lab · fallback-chain · git-guardrails · grill · handoff · implement · implement-spec · model-dashboard · openresearch · prototype · questionnaire · research · to-spec · to-tickets · tracker · triage · ts-deep-modules · wayfinder · webchain · writing-agents
 
-Five of them (`fallback-chain`, `webchain`, `model-dashboard`, `dspy-lab`, `openresearch`) document
-runtime surfaces whose code lives outside this repo — DSH bundles under `~/.dsh/plugins/`, the lab
-under `~/.dsh/dspy-lab/`, and an external CLI. This repo owns their skills, not their source; see
-`PROTECTED.md`.
+Five (`fallback-chain`, `webchain`, `model-dashboard`, `dspy-lab`, `openresearch`) document runtime surfaces coded outside this repo (`~/.dsh/plugins/`, `~/.dsh/dspy-lab/`, external CLI). Repo owns their skills, not source (`PROTECTED.md`).
 
 ## Provenance
 
@@ -138,5 +111,4 @@ under `~/.dsh/dspy-lab/`, and an external CLI. This repo owns their skills, not 
 | `DietrichGebert/ponytail` | MIT | AR description, single composite tool, soft call-count note |
 | `JuliusBrussee/caveman` | MIT | Fares-localized fork |
 
-Everything else here is original to this arsenal. [CHANGELOG.md](CHANGELOG.md) holds the version
-history and the honest record of what broke and when it was fixed.
+Everything else is original. [CHANGELOG.md](CHANGELOG.md): version history + honest break/fix record.

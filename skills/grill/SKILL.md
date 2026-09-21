@@ -1,7 +1,7 @@
 ---
 name: grill
 description: Relentless interview of the user on a plan, decision, or design until every branch of the design tree is resolved. Use when the user wants to stress-test their thinking, sharpen a plan, or says "grill me", "interview me", "I want to think this through", "challenge this design", or hands over a feature spec and wants it checked.
-whenToUse: "Stress-test a plan, design, or feature spec. The skill drives a design-tree interview: a round of questions on the current frontier, recommended answers, wait for the user's answers, then the next round. Use /grill-me for stateless, /grill-with-docs for stateful (in a working directory with CONTEXT.md and ADRs), /grilling for the raw primitive."
+whenToUse: "Stress-test a plan/design/spec via design-tree interview: question round on current frontier, recommended answers, await user answers, next round. /grill-me = stateless, /grill-with-docs = stateful (dir with CONTEXT.md + ADRs), /grilling = raw primitive."
 metadata:
   category: productivity
   scope: conversational

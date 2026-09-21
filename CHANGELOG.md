@@ -5,7 +5,26 @@ English for the record).
 
 ## [Unreleased] — 2026-09-21
 
+### Added
+- **A check for the skills-to-source seam** (ledger item 3). Every dynamic `SKILL.md` declares
+  its `actions:` and nothing verified them, so a renamed or dropped action would rot the doc
+  silently while the model kept calling something that is not there. Where the skill's name IS a
+  tool (caveman, drift, ponytail, second_order, sphinx, ultimate) the check demands exact
+  agreement with that tool's action enum in **both** directions — a doc that forgets an action
+  is as much rot as one that invents it. The group skills (codex to cdx_*, memo to memo_*, …)
+  bind through a mapping that lives in prose, so there the check is that each named action
+  exists somewhere in the bundle. A second test holds every `N tools` claim in a skill doc to
+  the mounted count. It found no drift: all 14 skills resolve and both numeric claims were true,
+  so the value is the detector — and each branch was proved by mutating what it guards.
+
 ### Fixed
+- **The merge script could print a tool count the bundle did not honour.** `allNames` counts the
+  `name:` literals the sources *declare*, which is not what registers — a gated or skipped
+  registration leaves its literal behind. A bundle with one tool unregistered still reported
+  "total tools: 38", and because the generated header is stamped from that same number, the
+  header would have stated it too. The merger now mounts what it just wrote (via `counts.cjs`,
+  the one derivation home) and exits 1 when the two disagree. The oracle already caught this
+  downstream; the build now fails at the source instead of printing a number it cannot back.
 - **Four checks that passed without proving anything.** Each was found by breaking the thing it
   guards, and none of them looked wrong from its own output. `skills-sprint4.test.cjs` verified
   nothing and exited 0 against an empty `skills/` (floor: 24). The README's prose-skill list was

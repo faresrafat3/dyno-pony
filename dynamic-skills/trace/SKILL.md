@@ -27,9 +27,7 @@ Part of the dyno-pony merged bundle (`rebuild.sh` mounts it). Reviews **dyno-pon
 
 ## Tracked tools
 
-One bundle, so a current log names the same `dyno-*` plugin for all of them — group by owner:
-ponytail `ponytail` · caveman `caveman` · orch `orch_route/compare/pipeline/status` · dsh-author `dsh_author_inspect/define/run/validate/recover` · memo `memo_classify/format/link/scope/archive/review` · plugin-test `ptest_template/assertions/harness` · codex `cdx_map/symbols/imports/owner/diff` · memory `mem_write/read/search/promote` · workflow `wf_compose/run/collect` · trace `trc_mode_flow/diff` (recursive) · sphinx `sphinx` · drift `drift` · second-order `second_order` · ultimate `ultimate`. Counts: `scripts/counts.cjs`.
-Pre-merge logs (before 2026-09-04) name per-plugin ids (`pony-1`, `cavm-2`, …) — match by tool name, not id.
+One bundle, so a current log names the same `dyno-*` plugin for all of them — group by owner: ponytail `ponytail` · caveman `caveman` · orch `orch_route/compare/pipeline/status` · dsh-author `dsh_author_inspect/define/run/validate/recover` · memo `memo_classify/format/link/scope/archive/review` · plugin-test `ptest_template/assertions/harness` · codex `cdx_map/symbols/imports/owner/diff` · memory `mem_write/read/search/promote` · workflow `wf_compose/run/collect` · trace `trc_mode_flow/diff` (recursive) · sphinx `sphinx` · drift `drift` · second-order `second_order` · ultimate `ultimate`. Counts: `scripts/counts.cjs`. Pre-merge logs (before 2026-09-04) name per-plugin ids (`pony-1`, `cavm-2`, …) — match by tool name, not id.
 
 ## When / NOT
 

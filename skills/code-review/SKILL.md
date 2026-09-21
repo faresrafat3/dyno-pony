@@ -1,7 +1,7 @@
 ---
 name: code-review
 description: Two-axis review of the diff since a fixed point. Standards (does the code follow the repo's documented standards + a Fowler smell baseline) and Spec (does the code match what the originating issue/spec asked for). Both axes run as parallel sub-agents so they don't pollute each other's context. Use when the user wants to review a branch, a PR, work-in-progress changes, or says "review since X", "review the diff", "is this ready to merge".
-whenToUse: "Run a two-axis review. (1) Pin the fixed point (commit SHA, branch, tag, merge-base). (2) Find the spec source. (3) Find the standards sources. (4) Spawn two parallel sub-agents, Standards + Spec. (5) Aggregate under separate headings, never merge. End with one line per axis: total findings, worst issue. Don't pick a winner across axes — the separation is the point."
+whenToUse: "Two-axis review: (1) pin fixed point (SHA/branch/tag/merge-base), (2) find spec source, (3) find standards sources, (4) spawn Standards + Spec sub-agents in parallel, (5) aggregate under separate headings, never merge. One line per axis (findings + worst); no cross-axis winner — separation is the point."
 metadata:
   category: engineering
   scope: review
@@ -25,8 +25,7 @@ Order: (1) commit issue refs (`#123`, `Closes #45`, `!67`) via tracker; (2) user
 
 ### 3. Standards sources
 
-`CODING_STANDARDS.md`, `CONTRIBUTING.md`, workspace `AGENTS.md` + fixed **Fowler baseline** (_Refactoring_ ch.3, applies with zero docs). Rules: **repo overrides** (documented wins); **judgement call** (labelled heuristic e.g. "possible Feature Envy", never violation; skip tooling-enforced).
-Smells: **Mysterious Name** (hides behavior) · **Duplicated Code** (same shape 2+ places) · **Feature Envy** (grabs other's data) · **Data Clumps** (co-traveling fields = unborn type) · **Primitive Obsession** (primitive for concept) · **Repeated Switches** · **Shotgun Surgery** (one change, scattered edits) · **Divergent Change** (one file, unrelated reasons) · **Speculative Generality** · **Message Chains** (`a.b().c().d()`) · **Middle Man** (pure delegate) · **Refused Bequest** (ignores inheritance).
+`CODING_STANDARDS.md`, `CONTRIBUTING.md`, workspace `AGENTS.md` + fixed **Fowler baseline** (_Refactoring_ ch.3, applies with zero docs). Rules: **repo overrides** (documented wins); **judgement call** (labelled heuristic e.g. "possible Feature Envy", never violation; skip tooling-enforced). Smells: **Mysterious Name** (hides behavior) · **Duplicated Code** (same shape 2+ places) · **Feature Envy** (grabs other's data) · **Data Clumps** (co-traveling fields = unborn type) · **Primitive Obsession** (primitive for concept) · **Repeated Switches** · **Shotgun Surgery** (one change, scattered edits) · **Divergent Change** (one file, unrelated reasons) · **Speculative Generality** · **Message Chains** (`a.b().c().d()`) · **Middle Man** (pure delegate) · **Refused Bequest** (ignores inheritance).
 
 ### 4. Spawn in parallel
 

@@ -167,7 +167,25 @@ for (const f of ORDER) {
 const ultimateCount = sectionCounts.ultimate || 0;
 const final = header(allNames.size - ultimateCount, ultimateCount) + out.join('') + FOOTER;
 fs.writeFileSync(OUT, final);
+
+// `allNames` is what the sources DECLARE — the `name:` literals this script
+// scans. That is not the same as what the bundle REGISTERS: a registration can be
+// gated behind a ctx service, skipped by a typo, or never reached, and its name
+// literal survives all three. So the declared number is not a measurement, and
+// the header above is stamped with it — which means the header is a lie whenever
+// the two disagree. Mount the bundle that was just written and check, using
+// counts.cjs, the one derivation home (E6).
+const counts = require('./counts.cjs');
+const registered = counts.compute().tools;
 console.log('');
 console.log('merged → ' + OUT);
-console.log('total tools: ' + allNames.size);
+console.log('total tools: ' + registered + ' registered / ' + allNames.size + ' declared');
 console.log('total size: ' + (final.length / 1024).toFixed(1) + ' KB');
+if (registered !== allNames.size) {
+  console.error('');
+  console.error('FATAL: the sources declare ' + allNames.size + ' tool(s) but the bundle registers ' + registered + '.');
+  console.error('  The generated header is stamped with the declared count, so it would be wrong,');
+  console.error('  and a name literal outlives a registration that never runs.');
+  console.error('  Fix the source — do not adjust the number.');
+  process.exit(1);
+}

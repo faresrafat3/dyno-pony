@@ -1,7 +1,7 @@
 ---
 name: questionnaire
 description: Turn a decision you can't answer alone into a Markdown questionnaire for the one person who can (filled in async, or together over a meeting). Use when the user is blocked by a question that lives in someone else's head — a stakeholder, a domain expert, a vendor — and the recipient needs a structured form to answer. The recipient holds the knowledge; the questionnaire pulls it out.
-whenToUse: "Grill the *send*, not the subject. Interview the user only about who it's going to and what they need back. Then write a Markdown questionnaire aimed at the gap between what the recipient knows and what the user needs. Order questions most-important-first (async means you may only get one pass). Save as to-questionnaire-<slug>.md in the current directory."
+whenToUse: "Grill the *send*, not the subject: who it goes to + what they must return. Then write a Markdown questionnaire at the recipient-knows/user-needs gap, most-important-first (async = one pass). Save as to-questionnaire-<slug>.md here."
 metadata:
   category: productivity
   scope: communication

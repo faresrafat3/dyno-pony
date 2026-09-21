@@ -1,7 +1,7 @@
 ---
 name: domain
 description: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a CONTEXT.md, recording an ADR, designing a module's interface, choosing where a seam goes, or making code more testable. Also reaches for the deep-module vocabulary (module, interface, depth, seam, adapter, leverage, locality) when designing or restructuring.
-whenToUse: "Two related disciplines, one skill. (1) Domain modeling: actively challenge fuzzy terms, sharpen with scenarios, update CONTEXT.md and ADRs inline. (2) Codebase design: shared vocabulary for deep modules — a small interface, a lot of behaviour, behind a clean seam, testable through that interface."
+whenToUse: "(1) Domain modeling: challenge fuzzy terms, sharpen with scenarios, update CONTEXT.md + ADRs inline. (2) Codebase design: shared vocabulary for deep modules — small interface, much behaviour, clean seam, testable through it."
 metadata:
   category: engineering
   scope: design

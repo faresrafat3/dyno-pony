@@ -170,6 +170,94 @@ test('no canonical skill pins a dead per-plugin id (regression)', () => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// The skills-to-source seam. A SKILL.md declares which actions it drives, and
+// nothing checked that those actions still exist: a renamed or dropped action
+// would rot the doc silently, and the model would call something that is not
+// there. Ledger item 3 in AGENT-ERGONOMICS.md.
+// ---------------------------------------------------------------------------
+test('every action a dynamic SKILL.md declares is one the bundle still provides', () => {
+  const tools = mountBundle();
+  const toolByName = new Map(tools.map((t) => [t.name, t]));
+  const actionEnum = (t) => {
+    const e = t && t.parameters && t.parameters.properties && t.parameters.properties.action
+      && t.parameters.properties.action.enum;
+    return Array.isArray(e) ? e : null;
+  };
+  const everyEnum = tools.map(actionEnum).filter(Boolean).flat();
+
+  const dirs = fs.readdirSync(SKILLS_DIR).filter((d) => fs.statSync(path.join(SKILLS_DIR, d)).isDirectory());
+  const unresolved = [];
+  const mismatched = [];
+  let checked = 0;
+
+  for (const dir of dirs) {
+    const txt = fs.readFileSync(path.join(SKILLS_DIR, dir, 'SKILL.md'), 'utf8');
+    const list = txt.match(/^\s*actions:\s*\[([^\]]*)\]/m);
+    // Every dynamic skill drives a tool group, so each must declare its actions —
+    // a skill that declares none is a skill this check cannot see.
+    assert.ok(list, `dynamic-skills/${dir}/SKILL.md declares no \`actions:\` — it is invisible to this check`);
+    const actions = list[1].split(',').map((s) => s.trim()).filter(Boolean);
+    checked += 1;
+
+    // Where the skill's name IS a tool (allowing `-` for `_`, as second-order is
+    // second_order), that tool's own enum is the authority and the two must agree
+    // BOTH ways — an action the doc forgot is as much rot as one it invented.
+    const homonym = toolByName.has(dir) ? dir : (toolByName.has(dir.replace(/-/g, '_')) ? dir.replace(/-/g, '_') : null);
+    const enums = homonym ? actionEnum(toolByName.get(homonym)) : null;
+    if (enums) {
+      const docOnly = actions.filter((a) => !enums.includes(a));
+      const toolOnly = enums.filter((a) => !actions.includes(a));
+      if (docOnly.length || toolOnly.length) {
+        mismatched.push(`${dir}: doc-only [${docOnly.join(', ')}], tool-only [${toolOnly.join(', ')}]`);
+      }
+      continue;
+    }
+
+    // The group skills (codex to cdx_*, memo to memo_*, dsh-author to
+    // dsh_author_*, …) have no name to bind to, and that mapping lives in prose;
+    // a table here would be a new thing to rot. So the check is the weaker, still
+    // useful one: every action the doc names exists somewhere in the bundle.
+    for (const a of actions) {
+      if (!toolByName.has(a) && !everyEnum.includes(a)) unresolved.push(`${dir}:${a}`);
+    }
+  }
+
+  // E9: the floor is the whole set of dynamic skills, taken from disk, so a parse
+  // that silently matches nothing fails instead of reporting success.
+  assert.equal(checked, dirs.length, `only ${checked} of ${dirs.length} dynamic skills were checked`);
+  assert.equal(unresolved.length, 0,
+    `a skill names an action no tool provides (doc rot at the seam): ${unresolved.join(', ')}`);
+  assert.equal(mismatched.length, 0,
+    `a skill's action list disagrees with its own tool: ${mismatched.join(' | ')}`);
+});
+
+test('every "N tools" claim in a skill doc is the bundle\'s real count', () => {
+  const c = counts.compute();
+  const claims = [];
+  for (const tree of ['dynamic-skills', 'skills']) {
+    const base = path.join(ROOT, tree);
+    if (!fs.existsSync(base)) continue;
+    for (const dir of fs.readdirSync(base).sort()) {
+      const file = path.join(base, dir, 'SKILL.md');
+      if (!fs.existsSync(file)) continue;
+      fs.readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
+        // Plural only: "7 tool calls" in sphinx's worked example is a usage count,
+        // not a claim about the bundle.
+        for (const m of line.matchAll(/\b(\d+)\s+tools\b/g)) {
+          claims.push({ where: `${tree}/${dir}/SKILL.md:${i + 1}`, n: Number(m[1]) });
+        }
+      });
+    }
+  }
+  // E9 floor: two docs state the bundle's size today. If the scan breaks, this
+  // fails rather than reporting that every claim it never found is correct.
+  assert.ok(claims.length >= 2, `only ${claims.length} "N tools" claim(s) found — the scan is what broke, not the docs`);
+  const wrong = claims.filter((x) => x.n !== c.tools);
+  assert.equal(wrong.length, 0,
+    `skill doc states a tool count disk disagrees with: ${wrong.map((x) => `${x.where} says ${x.n}, disk says ${c.tools}`).join('; ')}`);
+});
+
 test('README recovery recipe names at least one bundle path that exists on disk', () => {
   const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
   // Collect every backtick-quoted path-like token that ends in dyno-pony.js.

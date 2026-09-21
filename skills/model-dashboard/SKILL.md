@@ -1,7 +1,7 @@
 ---
 name: model-dashboard
 description: The engine's model control center — one live Settings surface over every LLM and web-search route. Live table of all providers/models with breaker stats, one-shot probes measuring speed AND correctness, sweep of everything at once, availability history, opportunity ranking (fastest-alive / fixable / capped / paid-dead), chain pinning, default-model switching, and key coverage. Use when the user says dashboard / لوحة النماذج / انهي النماذج عايشة / جرّب مفتاح أو موديل, or asks which model is alive, fastest, or free right now.
-whenToUse: "Answer \"which model is alive / fastest / free right now\": read the live route table, run a ⚡ probe (correctness before speed) or a full sweep, rank opportunities, pin a route to a chain, or switch the session default. Never probe in the background — one probe is one real call."
+whenToUse: "Read the live route table, run a ⚡ probe (correctness before speed) or full sweep, rank opportunities, pin a route, or switch session default. Never background-probe — one probe = one real call."
 metadata:
   category: runtime
   scope: model-ops

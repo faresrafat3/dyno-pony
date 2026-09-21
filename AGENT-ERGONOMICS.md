@@ -1,9 +1,6 @@
 # Agent Ergonomics — designing dyno-pony for the agent driving it
 
-Status: implemented principles + open design ledger. Written 2026-09-18, the session that
-revived the arsenal after it died, and had to fight the system's own documentation to do it.
-Every principle below is grounded in a failure that actually happened, with the cost measured.
-Nothing here is aspiration; it is scar tissue, organized.
+Status: implemented principles + open design ledger. Written 2026-09-18 by the session that revived the arsenal after it died — fighting the system's own documentation to do it. Every principle is grounded in a measured failure: scar tissue, organized, not aspiration.
 
 ## The one-sentence thesis
 
@@ -23,95 +20,56 @@ agent can discover it.** Ergonomics here is not aesthetics — it is the ratio o
 | P6 | Plugin skills' canonical home was the runtime dir (`~/.dsh/skills`) — unversioned | every live fix was one update away from vanishing | repo/deployment relationship never made explicit |
 | P7 | Loader used one absolute path into a foreign repo | breaks on repo move, fresh clone, or update | no path candidates, no deploy step |
 
-The pattern across all seven: **the system's records were stale or false, and nothing
-mechanical detected it.** The agent is the only part of this system that reads everything —
-so every lie costs tool calls the agent pays out of its context budget.
+The pattern across all seven: **records were stale or false and nothing mechanical detected it.** The agent reads everything — every lie costs it tool calls out of its context budget.
 
 ## Principles (the tower, top-down)
 
 ### E1 — The entry point tells the truth, or it does not exist
 
-One README is the tower: verified current state → where everything lives → the ONE recovery
-path → the ONE verification command. Everything else links from it. A doc that cannot be
-verified mechanically must mark itself `unverified`. (P3, P5)
+One README is the tower: verified state → where everything lives → the ONE recovery path → the ONE verification command; everything else links from it. Unverifiable docs mark themselves `unverified`. (P3, P5)
 
 ### E2 — One oracle: green means "alive and true"
 
-`node --test tests/preflight.test.cjs` asserts, against the REAL host guard: the bundle
-parses, defines exactly 38 tools, every schema passes, the canonical skills exist, no skill
-pins a dead recovery recipe, and the README's named paths exist on disk. Run it before
-every ship, after every restart, after every doc edit. If the oracle is red, the docs are
-lying — fix the red line, not the test. (P2, P3, P4, P5)
+`node --test tests/preflight.test.cjs` asserts, against the REAL host guard: the bundle parses, defines exactly 38 tools, every schema passes, canonical skills exist, no skill pins a dead recovery recipe, README's named paths exist. Run before every ship/restart/doc-edit. Oracle red = docs lying — fix the red line, not the test. (P2, P3, P4, P5)
 
 ### E3 — The repo is the source of truth; the runtime is a deployment
 
-Canonical lives in this repo: `packages/` (source), `dynamic-skills/` (the 14 plugin skills),
-`docs/`, `tests/`. The runtime (`~/.dsh/skills`, `~/.dsh/dyno-pony/`) is produced by
-`scripts/install.sh`. When a live session fixes a skill, `scripts/collect.sh --apply` flows
-the fix back into git. Fixes accrete or they evaporate — there is no third option. (P6)
+Canonical lives here: `packages/` (source), `dynamic-skills/` (14 plugin skills), `docs/`, `tests/`; the runtime (`~/.dsh/skills`, `~/.dsh/dyno-pony/`) is produced by `scripts/install.sh`. Live fixes flow back into git via `scripts/collect.sh --apply`. Fixes accrete or evaporate — no third option. (P6)
 
 ### E4 — Recovery is three tool calls, printed verbatim
 
-Restart → tools gone. Recovery is: `cordis_define` (loader, ~700 bytes) → `cordis_run` →
-verify with `Tool listTools`. The loader reads the bundle from disk (path candidates:
-`~/.dsh/dyno-pony/` deployed copy → `~/Projects/dyno-pony/` canonical → legacy harness
-checkout). The recipe lives in README §Recovery and in no other form — every skill points
-at it rather than restating it, so there is exactly one thing to keep true. (P1, P7)
+Restart → tools gone. Recovery: `cordis_define` (loader, ~700 bytes) → `cordis_run` → verify with `Tool listTools`. Loader reads the bundle from disk (candidates: `~/.dsh/dyno-pony/` deployed → `~/Projects/dyno-pony/` canonical → legacy harness checkout). The recipe lives in README §Recovery only — every skill points at it instead of restating it: exactly one thing to keep true. (P1, P7)
 
 ### E5 — Never pin a process-local identity in a durable document
 
-Plugin/package/run IDs are minted per session. Any doc that says `pluginId=pony-48` is
-writing a lie with a timestamp. Durable docs name *things on disk* (paths, tool names,
-counts) and let the session discover its own IDs via `cordis_inspect_self`. (P1)
+Plugin/package/run IDs are minted per session; a doc saying `pluginId=pony-48` is a lie with a timestamp. Durable docs name *things on disk* (paths, tool names, counts); sessions discover their own IDs via `cordis_inspect_self`. (P1)
 
 ### E6 — Counters are derived, never hardcoded
 
-Any surface that reports "N tools" must derive N from what it actually registered. A
-hardcoded 37 next to a registry holding 38 is a small lie that teaches the agent to distrust
-all counts. (P4)
+Any "N tools" surface must derive N from what it actually registered; a hardcoded 37 next to a 38-holding registry teaches the agent to distrust all counts. (P4)
 
-The sandbox `ctx` hands every host half a read-only registry façade — `ctx.tools.schemas()`
-(`guard.js`), reachable with no `inject` declaration — so the derivation is available exactly
-where the number is printed. `ultimate` reads its count from there at call time and intersects
-it with the names it declares, because `schemas()` also lists the host's own tools; the merged
-bundle's header is stamped by `scripts/merge-plugins.cjs` from what that run actually merged.
-Where no registry is reachable the surface says `declared` rather than printing an unmeasured
-number in the same font as a measured one, and the count it does print names anything the
-registry is missing — so a half-registered bundle reads like one.
+The sandbox `ctx` hands every host half a read-only registry façade — `ctx.tools.schemas()` (`guard.js`), reachable with no `inject` — so derivation is available where the number is printed. `ultimate` reads its count there at call time and intersects it with declared names (`schemas()` also lists host tools); the merged bundle header is stamped by `scripts/merge-plugins.cjs` from what that run merged. No registry → the surface says `declared`, never an unmeasured number in measured font; a printed count names registry-missing items — a half-registered bundle reads like one.
 
 ### E7 — Contract asymmetry gets documented as asymmetry
 
-`parameters` and `output.schema` look symmetric and are not: the first takes a root
-`required` array (raw wrapper) or per-property `required: true` (direct DSL); the second
-takes per-property `required: true` and MANDATES explicit `additionalProperties`. Documents
-must show both valid forms side by side with the exact error text of the rejected shapes,
-and the preflight test must keep the asymmetry true in code. (P2)
+`parameters` and `output.schema` look symmetric and are not: the first takes a root `required` array (raw wrapper) or per-property `required: true` (direct DSL); the second takes per-property `required: true` and MANDATES explicit `additionalProperties`. Docs show both valid forms side by side with rejected shapes' exact error text; preflight keeps the asymmetry true in code. (P2)
 
 ### E9 — A check proves it ran, or it is not a check
 
-"0 failures" must mean "compared N things and they matched", never "compared nothing and
-nothing disagreed". Any count a check prints needs a floor, and the floor has to come from an
-input *outside the check's own code* — otherwise the check and its expectation shrink together
-and the floor is a tautology. Where a floor cannot be derived, measure it by running: grepping
-the output miscounts. (One `grep -c "^  ok"` said 18 where the real count was 12, because other
-helpers print that prefix too.)
+"0 failures" must mean "compared N things and they matched", never "compared nothing". Every printed count needs a floor from an input *outside the check's own code* — else check and expectation shrink together (tautology). No derivable floor → measure by running; grepping output miscounts (one `grep -c "^  ok"` said 18 where the real count was 12 — other helpers print that prefix too).
 
-Four checks here failed that test on 2026-09-21. Each was found by breaking the thing it guards,
-and none of them looked wrong from its own output:
+Four checks failed that test on 2026-09-21 — each found by breaking the thing it guards; none looked wrong from its own output:
 
-- `skills-sprint4.test.cjs` printed "pass: 0 / 0, fail: 0" and exited 0 against an empty `skills/`.
-- The entire prose tree could be deleted with the suite still at 176 pass / 0 fail: the README's
-  Prose list was checked disk→README only, never README→disk.
-- Deleting a test file dropped the run from 176 to 165 tests silently; emptying one dropped it to
-  161 — a file with no tests is simply a file that passes.
-- `presets.test.cjs` silently `return`ed when its directory was missing, which reports PASS.
+- `skills-sprint4.test.cjs`: "pass: 0/0, fail: 0" and exit 0 against an empty `skills/`.
+- Whole prose tree deletable with the suite still 176 pass / 0 fail (README Prose list checked disk→README only, never README→disk).
+- Deleting a test file dropped the run 176→165 silently; emptying one →161. A file with no tests is a file that passes.
+- `presets.test.cjs` silently `return`ed on a missing directory — reports PASS.
 
-All four now carry floors or integrity checks, and each was re-tested against the same mutation.
+All four now carry floors or integrity checks, each re-tested against the same mutation.
 
 ### E8 — Arabic for the human, English for the record
 
-Chat with Fares is Arabic; durable artifacts (docs, code, commit bodies) are English. Both
-are legitimate; mixing them inside one artifact halves the legibility of each. (repo-wide)
+Chat with Fares is Arabic; durable artifacts (docs, code, commit bodies) are English. Mixing them inside one artifact halves each one's legibility. (repo-wide)
 
 ## The operating cycle this enables
 
@@ -126,20 +84,8 @@ Four verbs, each one command. An agent arriving cold reads only the README and c
 
 ## Open ledger (next accretions, in cost order)
 
-1. ~~**E6 violation live:** `ultimate`'s `totalTools` is a build-time constant (37) that
-   disagrees with the registry (38). Derive it from the captured tool list at mount time.~~
-   **Closed 2026-09-21.** The count is now read from the live registry (`ctx.tools.schemas()`)
-   at call time and intersected with the declared arsenal; `declared` is printed when there is
-   nothing to measure against. `tests/preflight.test.cjs` pins the declared list to the bundle's
-   own `EXPECTED_TOOLS`, and `tests/ultimate.test.cjs` hands the tool registries that contradict
-   its source — eight assertions fail against the restored hardcode, and the deployed bundle was
-   re-checked after install.
-2. **Deployment-as-default:** an agent preset row (or profile bundle) that mounts the loader
-   at session start would collapse E4 from three calls to zero. Blocked on a composition
-   decision Fares owns (host-plane vs preset-plane — see `editing-cordis-compositions` skill,
-   "decide the plane first").
-3. **Skill frontmatter linter:** a test that parses each SKILL.md's `actions:` list and
-   asserts every named action exists in the bundle's tool. Catches doc rot at the seam
-   between skills and source.
-4. **Version single-source:** `package.json` version should be the only version literal;
-   README/CHANGELOG cite it rather than restating it.
+1. ~~**E6 violation live:** `ultimate`'s `totalTools` build-time constant (37) vs registry (38).~~
+   **Closed 2026-09-21.** Count now read from the live registry (`ctx.tools.schemas()`) at call time, intersected with the declared arsenal; `declared` printed when nothing to measure. `tests/preflight.test.cjs` pins the declared list to the bundle's `EXPECTED_TOOLS`; `tests/ultimate.test.cjs` contradicts its source — eight assertions fail against the restored hardcode; deployed bundle re-checked after install.
+2. **Deployment-as-default:** a preset row (or profile bundle) mounting the loader at session start collapses E4 from three calls to zero. Blocked on Fares's composition decision (host-plane vs preset-plane — `editing-cordis-compositions`, "decide the plane first").
+3. **Skill frontmatter linter:** parse each SKILL.md's `actions:` list, assert every named action exists in the bundle's tools — catches doc rot at the skills/source seam.
+4. **Version single-source:** `package.json` is the only version literal; README/CHANGELOG cite it.

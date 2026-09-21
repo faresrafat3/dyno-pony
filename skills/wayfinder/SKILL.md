@@ -1,7 +1,7 @@
 ---
 name: wayfinder
 description: Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on the issue tracker, and resolve them one at a time until the way to the destination is clear. Use when the user has a foggy, multi-session effort — a greenfield project, a huge feature build, a migration — and the way from here to the destination isn't visible yet.
-whenToUse: "Wayfinder charts a **shared map** of **decision tickets** (questions whose resolution is a decision, not slices of a build) on the issue tracker, then works the tickets one at a time. When the way clears, hand off (don't build): merge onto the main flow at `to-spec`, which collapses the map's linked decisions into a buildable plan, then `to-tickets` and `implement` as usual."
+whenToUse: "Chart a **shared map** of **decision tickets** (resolved by decision, not build slices) on the tracker; work one at a time. Way clear → hand off (don't build): `to-spec` collapses linked decisions to a buildable plan, then `to-tickets` + `implement`."
 metadata:
   category: engineering
   scope: planning

@@ -1,7 +1,7 @@
 ---
 name: triage
 description: Move issues on the project issue tracker through a small state machine of triage roles, categorise, verify, grill if needed, and write agent-ready briefs. Use when the user wants to triage the backlog, says "triage issues", "categorise the bug reports", "what's in the queue", or runs /triage.
-whenToUse: "Two category roles (bug, enhancement) and five state roles (needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix). Every triaged issue carries exactly one category and one state. For a PR: same states, against the attached code. (1) Show what needs attention. (2) Triage a specific issue: gather context, recommend, verify the claim, grill if needed, apply outcome. (3) Quick state override for 'move #N to X' requests."
+whenToUse: "Two categories (bug, enhancement) + five states (needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix); every triaged issue carries exactly one of each. PRs: same states vs attached code. (1) Show attention items. (2) Triage one issue: context, recommend, verify, grill if needed, apply. (3) Quick override for 'move #N to X'."
 metadata:
   category: engineering
   scope: triage
@@ -11,7 +11,7 @@ metadata:
 
 # Triage
 
-Move issues through a small state machine of triage roles. PRs = issues w/ attached code; resolve bare `#42` per tracker config. Tracker configured by `tracker` skill (local markdown default `~/.dsh/tracker/`).
+Move issues through a small triage state machine. PRs = issues w/ attached code; bare `#42` resolved per tracker config (`tracker` skill; local markdown default `~/.dsh/tracker/`).
 
 ## Reference docs
 
@@ -30,11 +30,11 @@ Move issues through a small state machine of triage roles. PRs = issues w/ attac
 - `ready-for-human` — needs human.
 - `wontfix` — no action.
 
-For PR, states read vs attached code: `ready-for-agent` = brief attached, agent takes next diff step; `ready-for-human` = ready to merge.
+PR states read vs attached code: `ready-for-agent` = brief attached, agent takes next diff step; `ready-for-human` = ready to merge.
 
 Each triaged issue carries **exactly one** category + one state. Conflicting states → flag, ask before acting.
 
-Canonical names; actual label strings may differ — `tracker` config maps canonical→local. Missing config → run `setup-matt-pocock-skills` or set labels in `~/.dsh/tracker/config.yaml`.
+Canonical names; actual label strings may differ — `tracker` config maps canonical→local. Missing config → `setup-matt-pocock-skills` or set labels in `~/.dsh/tracker/config.yaml`.
 
 Transitions: unlabeled → `needs-triage` → `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`. `needs-info` → `needs-triage` on reporter reply. Maintainer may override anytime; flag unusual transitions, ask first.
 
@@ -54,11 +54,11 @@ Counts + one-line summary each. Maintainer picks. Local tracker: `ls ~/.dsh/trac
 
 ## Triage a specific issue or PR
 
-1. **Gather context.** Full issue/PR (body, comments, labels, author, dates; PR: diff too). Parse prior triage notes — don't re-ask resolved. Explore codebase via domain glossary, respect ADRs. Two codebase checks:
+1. **Gather context.** Full issue/PR (body, comments, labels, author, dates; PR: +diff). Parse prior triage notes — don't re-ask resolved. Explore codebase via domain glossary, respect ADRs. Two checks:
    - **(a) Redundancy** — search existing implementation by domain concept (not request wording); report where looked. Found = already-implemented `wontfix` (step 5).
    - **(b) Prior rejection** — read `.out-of-scope/*.md` (or local out-of-scope dir); surface resemblances.
-2. **Recommend.** Category + state w/ reasoning, plus relevant codebase summary (incl. already-implemented?). Wait for direction.
-3. **Verify claim** before grilling. Bug: reproduce from reporter steps. PR: checkout, confirm diff does what it claims (run tests/commands). Report: confirmed (w/ code path) / failed / insufficient detail (strong `needs-info`).
+2. **Recommend.** Category + state w/ reasoning + relevant codebase summary (already-implemented?). Wait for direction.
+3. **Verify claim** before grilling. Bug: reproduce from reporter steps. PR: checkout, confirm diff does what it claims (run tests/commands). Report: confirmed (w/ code path) / failed / insufficient (strong `needs-info`).
 4. **Grill (if needed).** Needs fleshing → `grill` skill (grill-with-docs) + `domain` inline, one question round at a time; sharpen terms, update `CONTEXT.md`/ADRs as decisions land.
 5. **Apply outcome:**
    - `ready-for-agent` — front-matter `state: ready-for-agent` + **agent brief** in body.
@@ -69,7 +69,7 @@ Counts + one-line summary each. Maintainer picks. Local tracker: `ls ~/.dsh/trac
 
 ## Quick state override
 
-"Move #42 to ready-for-agent" → trust, apply directly. Confirm planned changes (role, comment, close), act. Skip grilling. Moving to `ready-for-agent` without grilling → ask if they want agent brief.
+"Move #42 to ready-for-agent" → trust, apply directly. Confirm planned changes (role, comment, close), act. Skip grilling; ask if they want an agent brief when skipping it.
 
 ## Needs-info template
 
@@ -87,8 +87,8 @@ Counts + one-line summary each. Maintainer picks. Local tracker: `ls ~/.dsh/trac
 - question 2
 ```
 
-Capture grilled resolutions under "established" so work survives. Questions specific + actionable, never "more info please".
+Capture grilled resolutions under "established" so work survives. Questions specific + actionable — never "more info please".
 
 ## Resuming
 
-Prior notes exist → read, check reporter answers, present updated picture. Don't re-ask resolved.
+Prior notes → read, check reporter answers, present updated picture. Don't re-ask resolved.

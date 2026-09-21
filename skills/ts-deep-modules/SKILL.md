@@ -1,7 +1,7 @@
 ---
 name: ts-deep-modules
 description: Wire dependency-cruiser into a TypeScript repo so each package is a deep module — implementation hidden in subfolders, reachable only through its entry-point files at the package root. Use when the user has a TypeScript repo with multiple packages and wants to enforce the deep-module discipline structurally.
-whenToUse: "(1) Detect the package manager and packages root. (2) Install dependency-cruiser as a devDependency. (3) Write .dependency-cruiser.cjs with the four rules (entry-point boundary, intra-package freedom, tests through entry points, no cycles). (4) Wire `lint:boundaries` into the existing umbrella check. (5) Scaffold an example package. (6) Prove the rules bite (a deliberate deep import must fail)."
+whenToUse: "(1) Detect package manager + packages root. (2) Install dependency-cruiser as devDep. (3) Write .dependency-cruiser.cjs with four rules (entry boundary, intra-package freedom, tests-via-entry, no cycles). (4) Wire `lint:boundaries` into umbrella check. (5) Scaffold example package. (6) Prove rules bite (deliberate deep import must fail)."
 metadata:
   category: engineering
   scope: boundaries

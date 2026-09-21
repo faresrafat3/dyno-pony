@@ -30,5 +30,4 @@ Lazy `ponytail(mode=ultra)` (YAGNI/reuse/stdlib) · terse `caveman(action=terse)
 
 ## Fit
 
-**Use:** long important session (Fares triggers); smart tool-choice; sentinels wanted. **Skip:** 2-turn Q&A (overhead); single-tool want (call directly); terse+lazy sans sentinels (`pony-mode`/`caveman-mode`).
-Subsets co-exist, narrowest wins: `pony-mode` (pony+orch) · `caveman-mode` (caveman+orch) · `sentinel-mode` (sphinx+drift+second_order) · `ultimate-mode` (superset: all + dsh-author, memo, plugin-test, codex, memory, workflow, trace).
+**Use:** long important session (Fares triggers); smart tool-choice; sentinels wanted. **Skip:** 2-turn Q&A (overhead); single-tool want (call directly); terse+lazy sans sentinels (`pony-mode`/`caveman-mode`). Subsets co-exist, narrowest wins: `pony-mode` (pony+orch) · `caveman-mode` (caveman+orch) · `sentinel-mode` (sphinx+drift+second_order) · `ultimate-mode` (superset: all + dsh-author, memo, plugin-test, codex, memory, workflow, trace).
