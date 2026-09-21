@@ -5,6 +5,13 @@ English for the record).
 
 ## [Unreleased] — 2026-09-21
 
+### Changed
+- **The documentation surface condensed** — README, AGENT-ERGONOMICS (145→91 lines) and 16 skill
+  docs tightened with no semantic change (filler only; every fact, path, count and command kept).
+  The workspace context-audit's declared document now sits inside its ceiling, and the runtime was
+  redeployed from this repo (`bash scripts/install.sh`) — `collect.sh` reports "runtime and repo
+  agree". Method + acceptance evidence: `~/local/context/2026-09-21-receipt-round4.md`.
+
 ### Added
 - **A check for the skills-to-source seam** (ledger item 3). Every dynamic `SKILL.md` declares
   its `actions:` and nothing verified them, so a renamed or dropped action would rot the doc
