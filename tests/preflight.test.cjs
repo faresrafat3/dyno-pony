@@ -11,21 +11,31 @@
 //      per-property `required: true` (direct DSL form) — never both; the docs
 //      prescribed exactly the rejected shape. Cost: 3 failed cordis_run calls.
 //
-// Green here means: the bundle parses, defines exactly 38 tools, every tool
-// schema passes the REAL host guard (sandboxDefineTool from
-// @deepseek-ai/dsh-cordis-host-runner), and the canonical skill docs agree
-// with disk reality. If this suite is red, do not ship and do not trust the
-// docs — fix the red line first.
+// A third failure (2026-09-21): rebuild.sh still stated "34 tools / 10 skills /
+// 4 presets" months after the merge took the arsenal to 38 / 14 / 6, and
+// nothing checked the script — so it kept teaching the next agent a false
+// count (E6: counters are derived, never hardcoded).
+//
+// Green here means: the bundle parses, defines exactly the tools EXPECTED_TOOLS
+// names, every tool schema passes the REAL host guard (sandboxDefineTool from
+// @deepseek-ai/dsh-cordis-host-runner), the counts each document states match
+// disk (rebuild.sh is executed and its numbers compared), and the canonical
+// skill docs agree with disk reality. If this suite is red, do not ship and do
+// not trust the docs — fix the red line first.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 
 const ROOT = path.join(__dirname, '..');
 const PACKAGES_DIR = path.join(ROOT, 'packages');
 const MERGED = path.join(PACKAGES_DIR, 'dyno-pony.js');
 const SKILLS_DIR = path.join(ROOT, 'dynamic-skills');
+const PROSE_SKILLS_DIR = path.join(ROOT, 'skills');
+const TESTS_DIR = path.join(ROOT, 'tests');
+const counts = require(path.join(ROOT, 'scripts', 'counts.cjs'));
 
 const EXPECTED_TOOLS = [
   'ponytail', 'caveman',
@@ -69,6 +79,11 @@ function mountBundle() {
 // ---------------------------------------------------------------------------
 const GUARD_PATH = '/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-cordis-host-runner/lib/types/guard.js';
 const guard = fs.existsSync(GUARD_PATH) ? require(GUARD_PATH) : null;
+
+// rebuild.sh is a documentation script, so it is executed here and the numbers
+// it prints are compared against disk (see the doc-agreement tests at the end).
+const REBUILD = spawnSync('bash', [path.join(ROOT, 'rebuild.sh')], { encoding: 'utf8' });
+const BASH_MISSING = Boolean(REBUILD.error) || REBUILD.status === null;
 
 test('bundle file exists and is non-trivial', () => {
   const stat = fs.statSync(MERGED);
@@ -130,7 +145,7 @@ test('canonical skills: 14 dirs, each with SKILL.md naming its tools', () => {
   }
 });
 
-test('no canonical skill pins a dead kind=existing recovery recipe (regression)', () => {
+test('no canonical skill pins a dead per-plugin id (regression)', () => {
   const dirs = fs.readdirSync(SKILLS_DIR).filter((d) => fs.statSync(path.join(SKILLS_DIR, d)).isDirectory());
   for (const d of dirs) {
     const txt = fs.readFileSync(path.join(SKILLS_DIR, d, 'SKILL.md'), 'utf8');
@@ -138,6 +153,13 @@ test('no canonical skill pins a dead kind=existing recovery recipe (regression)'
     assert.ok(fm, `${d}: frontmatter missing`);
     assert.doesNotMatch(fm[1], /cordisDefine: "kind=existing/,
       `${d}: still pins a dead kind=existing recipe — after a restart that ID is gone`);
+    // Since the merge (2026-09-04) every tool ships in ONE bundle mounted under a
+    // fresh dyno-* id, so a per-plugin id or a pkg-N in the body is dead too —
+    // the frontmatter is not the only place this rot hides (E5).
+    assert.doesNotMatch(txt, /pluginId[:=]\s*"?[a-z][a-z0-9]*-\d|packageId[:=]\s*"?pkg-\d/,
+      `${d}: names a per-plugin id / package id that a restart kills — point at the merged bundle`);
+    assert.doesNotMatch(txt, /kind=existing/,
+      `${d}: prescribes kind=existing, which cannot work after a restart`);
   }
 });
 
@@ -152,4 +174,140 @@ test('README recovery recipe names at least one bundle path that exists on disk'
     existing.length > 0,
     `README names bundle paths, none exist on disk — the entry tower is lying:\n  ${tokens.join('\n  ')}`,
   );
+});
+
+// ---------------------------------------------------------------------------
+// Doc agreement — every count a durable document states must come from disk.
+// scripts/counts.cjs derives them; these tests cross-check the derivation
+// against this file's own mount, then against what the documents actually say.
+// ---------------------------------------------------------------------------
+test('counts: the merge manifest, the bundle markers, and the mounted tools agree', () => {
+  const c = counts.compute();
+  assert.equal(c.tools, EXPECTED_TOOLS.length,
+    `scripts/counts.cjs mounted ${c.tools} tools, this oracle expects ${EXPECTED_TOOLS.length}`);
+  assert.equal(c.sectionTools, c.tools,
+    `the bundle's section markers sum to ${c.sectionTools} but ${c.tools} tools mount — rebuild the bundle`);
+  assert.deepEqual(
+    c.sections.map((s) => s.name).sort(),
+    c.sourceFiles.map((f) => f.replace(/\.js$/, '')).sort(),
+    'the merged sections must be exactly the ORDER manifest in scripts/merge-plugins.cjs',
+  );
+  assert.equal(c.sourcesPresent, c.sources,
+    'a source named in the ORDER manifest is missing from packages/');
+  assert.equal(c.packageFiles - c.plugins, c.sources,
+    'packages/*.js minus the merged bundle(s) must equal the ORDER manifest');
+  assert.equal(c.plugins, 1, `expected exactly 1 merged plugin file in packages/, found ${c.plugins}`);
+
+  const skillDirs = fs.readdirSync(SKILLS_DIR).filter((d) => fs.statSync(path.join(SKILLS_DIR, d)).isDirectory());
+  assert.equal(c.skills, skillDirs.length,
+    `counts.cjs says ${c.skills} skills, dynamic-skills/ holds ${skillDirs.length} dirs`);
+});
+
+test('rebuild.sh prints the derived counts, never remembered ones', { skip: BASH_MISSING && 'bash is not available on this machine' }, () => {
+  assert.equal(REBUILD.status, 0, `rebuild.sh exited ${REBUILD.status}:\n${REBUILD.stderr}`);
+  const out = REBUILD.stdout;
+  const c = counts.compute();
+
+  const line = out.match(/\[rebuild\] counts: tools=(\d+) plugins=(\d+) sources=(\d+) skills=(\d+) presets=(\d+)/);
+  assert.ok(line, 'rebuild.sh must print a `[rebuild] counts:` line derived by scripts/counts.cjs');
+  const stated = { tools: +line[1], plugins: +line[2], sources: +line[3], skills: +line[4], presets: +line[5] };
+  for (const key of Object.keys(stated)) {
+    assert.equal(stated[key], c[key], `rebuild.sh states ${key}=${stated[key]}, disk says ${c[key]}`);
+  }
+
+  assert.match(out, new RegExp(`\\b${c.tools} tools\\b`), 'the prose must state the real tool count');
+  assert.match(out, new RegExp(`\\b${c.sources} sources\\b`), 'the prose must state the real source count');
+  assert.doesNotMatch(out, /pluginId=(?:dp|pkg)-\d+|kind=existing/,
+    'rebuild.sh must not pin a process-local plugin id — after a restart that id is dead (E5)');
+  for (const stale of ['34 tools', '10 skills', '4 presets', '2013 lines', '10 source files', 'the 15 originals', '100KB']) {
+    const pattern = stale.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.doesNotMatch(out, new RegExp(`\\b${pattern}`),
+      `rebuild.sh still teaches a stale count: "${stale}"`);
+  }
+});
+
+test('the merged bundle header prescribes no dead recovery recipe (regression)', () => {
+  const bundle = fs.readFileSync(MERGED, 'utf8');
+  // Only the generated header (everything before the plugin body): a tool body
+  // may legitimately discuss recovery, the header must not pin a dead id (E5).
+  const header = bundle.slice(0, bundle.indexOf('return {'));
+  assert.doesNotMatch(header, /kind=existing|pluginId=(?:dp|pkg)-\d/,
+    'the bundle header tells the next agent to re-apply a process-local id that a restart kills');
+});
+
+test('README §Skills names every skill on disk, and names no ghost', () => {
+  const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  const trees = [
+    ['dynamic-skills', SKILLS_DIR],
+    ['skills', path.join(ROOT, 'skills')],
+  ];
+  for (const [tree, dir] of trees) {
+    const onDisk = fs.readdirSync(dir).filter((d) => fs.statSync(path.join(dir, d)).isDirectory());
+    for (const name of onDisk) {
+      const named = new RegExp(`(?:^|[\\s·(])${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=[\\s·),]|$)`, 'm');
+      assert.match(readme, named,
+        `${tree}/${name} is on disk but README never names it — a skill nobody can find is a skill nobody runs`);
+    }
+  }
+  // The other direction: every name the README lists under these trees must exist.
+  const dynamicList = readme.match(/\*\*Dynamic \(.*?\):\*\*([\s\S]*?)\n\n/);
+  assert.ok(dynamicList, 'README must carry the Dynamic skills list');
+  const listed = dynamicList[1].split('·').map((s) => s.trim()).filter(Boolean);
+  const dirs = fs.readdirSync(SKILLS_DIR);
+  for (const name of listed) {
+    assert.ok(dirs.includes(name), `README lists dynamic skill "${name}", which is not in dynamic-skills/`);
+  }
+
+  // The same reverse direction for the PROSE tree. Only the disk->README direction
+  // covered it, so deleting all 24 prose skills left the whole suite at 176 pass / 0
+  // fail: the README still listed them and nothing asked whether they existed.
+  const proseList = readme.match(/\*\*Prose \(.*?\):\*\*([\s\S]*?)\n\n/);
+  assert.ok(proseList, 'README must carry the Prose skills list');
+  const proseNames = proseList[1].split('·').map((s) => s.trim()).filter(Boolean);
+  assert.ok(proseNames.length > 0, 'the README Prose list is empty — nothing to check, so nothing is checked');
+  const proseDirs = fs.readdirSync(PROSE_SKILLS_DIR)
+    .filter((d) => fs.statSync(path.join(PROSE_SKILLS_DIR, d)).isDirectory());
+  for (const name of proseNames) {
+    assert.ok(proseDirs.includes(name),
+      `README lists prose skill "${name}", which is not in skills/ — a documented skill nobody can run`);
+  }
+});
+
+test('the suite is intact: no test file was deleted or emptied', () => {
+  /*
+   * node --test cannot notice its own shrinkage. Deleting tests/drift.test.cjs took
+   * the run from 176 to 165 tests and emptying tests/conformance.test.cjs took it to
+   * 161 — both reported "0 fail" and exited 0, because a file with no tests is simply
+   * a file that passes. The files are the input here, so no count is self-derived.
+   */
+  const MIN_TEST_FILES = 11;
+  const files = fs.readdirSync(TESTS_DIR).filter((f) => f.endsWith('.test.cjs'));
+  assert.ok(files.length >= MIN_TEST_FILES,
+    `only ${files.length} test file(s), expected at least ${MIN_TEST_FILES}: ${files.join(', ')}`);
+
+  const inert = [];
+  for (const f of files) {
+    const body = fs.readFileSync(path.join(TESTS_DIR, f), 'utf8');
+    const declaresTests = /^\s*(test|it)\(/m.test(body);
+    // A file may also be a hand-rolled verifier, but then it must be able to fail.
+    const canFail = /assert\./.test(body) || /process\.exit\(\s*[1-9]/.test(body);
+    if (body.trim().length === 0 || (!declaresTests && !canFail)) inert.push(f);
+  }
+  assert.equal(inert.length, 0,
+    `test file(s) declare no tests and cannot fail, so they only ever pass: ${inert.join(', ')}`);
+});
+
+test('README states the same counts as disk', () => {
+  const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  const c = counts.compute();
+  const verified = readme.match(/Verified state:.*$/m);
+  assert.ok(verified, 'README must carry a "Verified state:" line');
+  assert.match(verified[0], new RegExp(`\\b${c.plugins} merged plugin\\b`),
+    'README Verified state must state the real plugin count');
+  assert.match(verified[0], new RegExp(`\\b${c.tools} tools\\b`),
+    'README Verified state must state the real tool count');
+  assert.match(verified[0], new RegExp(`\\b${c.skills} dynamic skills\\b`),
+    'README Verified state must state the real skill count');
+  assert.match(readme, new RegExp(`the ${c.sources} originals`),
+    'README layout must state the real source count');
 });

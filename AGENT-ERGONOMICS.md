@@ -78,6 +78,27 @@ takes per-property `required: true` and MANDATES explicit `additionalProperties`
 must show both valid forms side by side with the exact error text of the rejected shapes,
 and the preflight test must keep the asymmetry true in code. (P2)
 
+### E9 — A check proves it ran, or it is not a check
+
+"0 failures" must mean "compared N things and they matched", never "compared nothing and
+nothing disagreed". Any count a check prints needs a floor, and the floor has to come from an
+input *outside the check's own code* — otherwise the check and its expectation shrink together
+and the floor is a tautology. Where a floor cannot be derived, measure it by running: grepping
+the output miscounts. (One `grep -c "^  ok"` said 18 where the real count was 12, because other
+helpers print that prefix too.)
+
+Four checks here failed that test on 2026-09-21. Each was found by breaking the thing it guards,
+and none of them looked wrong from its own output:
+
+- `skills-sprint4.test.cjs` printed "pass: 0 / 0, fail: 0" and exited 0 against an empty `skills/`.
+- The entire prose tree could be deleted with the suite still at 176 pass / 0 fail: the README's
+  Prose list was checked disk→README only, never README→disk.
+- Deleting a test file dropped the run from 176 to 165 tests silently; emptying one dropped it to
+  161 — a file with no tests is simply a file that passes.
+- `presets.test.cjs` silently `return`ed when its directory was missing, which reports PASS.
+
+All four now carry floors or integrity checks, and each was re-tested against the same mutation.
+
 ### E8 — Arabic for the human, English for the record
 
 Chat with Fares is Arabic; durable artifacts (docs, code, commit bodies) are English. Both

@@ -1,5 +1,11 @@
 #!/usr/bin/env node
-// verify-skills.js — sanity-check the 17 sprint-4 skills.
+// verify-skills.js — sanity-check every prose skill in skills/.
+//
+// The size floor used to be "30 lines". Since the 2026-09-20 compression pass
+// (collected 2026-09-21) a faithful skill writes a sentence-group per line, so
+// line count stopped measuring substance: `prototype` and `research` kept every
+// rule and section but dropped to 26 lines. The floor is now lines OR bytes —
+// byte count is what a stub actually fails.
 
 'use strict';
 const fs = require('fs');
@@ -8,6 +14,11 @@ const path = require('path');
 const SKILLS_DIR = path.join(__dirname, '..', 'skills');
 const entries = fs.readdirSync(SKILLS_DIR, { withFileTypes: true });
 const skills = entries.filter(e => e.isDirectory()).map(e => e.name).sort();
+
+// A coverage floor. Without it an empty tree printed "pass: 0 / 0, fail: 0" and
+// exited 0 — green while verifying nothing, which is the one outcome a verifier
+// must never report. 24 is the prose tree README documents under `skills/`.
+const MIN_SKILLS = 24;
 
 let pass = 0, fail = 0;
 const names = new Set();
@@ -82,8 +93,14 @@ for (const dir of skills) {
   }
   names.add(fm.name);
 
-  if (lines.length < 30 || lines.length > 280) {
+  const bytes = Buffer.byteLength(body, 'utf8');
+  if (lines.length < 20 || lines.length > 280) {
     issues.push({ dir, kind: 'body-length', lines: lines.length });
+    fail++;
+    continue;
+  }
+  if (bytes < 1500) {
+    issues.push({ dir, kind: 'body-too-thin', bytes });
     fail++;
     continue;
   }
@@ -95,6 +112,9 @@ for (const dir of skills) {
 console.log('');
 console.log('pass: ' + pass + ' / ' + skills.length);
 console.log('fail: ' + fail);
+if (skills.length < MIN_SKILLS) {
+  issues.push({ dir: SKILLS_DIR, kind: 'too-few-skills', keys: [skills.length + ' < ' + MIN_SKILLS] });
+}
 if (issues.length) {
   console.log('--- issues ---');
   for (const i of issues) console.log('  ' + i.kind + ' in ' + i.dir + (i.keys ? ' [' + i.keys.join(',') + ']' : ''));

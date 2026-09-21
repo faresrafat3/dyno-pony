@@ -3,6 +3,19 @@
 All notable changes to the dyno-pony arsenal. English only (E8: Arabic is for chat,
 English for the record).
 
+## [Unreleased] — 2026-09-21
+
+### Fixed
+- **Four checks that passed without proving anything.** Each was found by breaking the thing it
+  guards, and none of them looked wrong from its own output. `skills-sprint4.test.cjs` verified
+  nothing and exited 0 against an empty `skills/` (floor: 24). The README's prose-skill list was
+  checked disk→README only, so deleting all 24 prose skills left the whole suite at 176 pass /
+  0 fail — the reverse direction is now asserted. The suite could not notice its own shrinkage:
+  deleting a test file silently ran 165 tests instead of 176, and emptying one ran 161, because a
+  file with no tests is a file that passes (now a test-file floor plus "every file declares tests
+  or can fail"). `presets.test.cjs` `return`ed silently when its directory was missing, reporting
+  PASS. The rule is recorded as **E9** in `AGENT-ERGONOMICS.md`.
+
 ## [1.1.0] — 2026-09-18
 
 The revival release. The arsenal died on a DSH restart and its own documentation fought

@@ -44,7 +44,10 @@ for (const { id, description_includes } of EXPECTED_PRESETS) {
 }
 
 test('presets: no extra/unknown presets', () => {
-  if (!fs.existsSync(PRESETS_DIR)) return; // skip if dir doesn't exist
+  // This used to `return` when the directory was missing, which reports PASS while
+  // checking nothing — the same silent-green shape as a skipped-but-counted test.
+  // The first test above already asserts the directory exists, so failing is honest.
+  assert.ok(fs.existsSync(PRESETS_DIR), `presets dir not found: ${PRESETS_DIR}`);
   const dirs = fs.readdirSync(PRESETS_DIR).filter((d) => {
     const full = path.join(PRESETS_DIR, d);
     return fs.statSync(full).isDirectory();
