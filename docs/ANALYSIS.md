@@ -1,5 +1,9 @@
 # dyno-pony — DSH Landscape Analysis
 
+> **Historical snapshot — the discovery pass (committed 2026-09-18).** It informed what dyno-pony
+> should add; several "proposal — not yet built" candidates below have since shipped (`codex`,
+> `workflow`, `memory`, `plugin-test`). Current state: README + `scripts/counts.cjs`.
+
 > Discovery pass against the DSH substrate to inform what `dyno-pony` should and should not add.
 > Written after a 4-pass read of `AGENTS.md` files, the architecture map, the extension cookbook,
 > the subsystem pages for `core` / `skill` / `workflow` / `experimental/agent-team` / `plan-mode`,
