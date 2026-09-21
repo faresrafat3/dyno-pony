@@ -1,18 +1,16 @@
 ---
 name: workflow
 description: >
-  Bridge orch plans into the substrate's ctx.workflowEngine. Three tools:
-  wf_compose (convert an `orch_pipeline` plan into a workflow script body that
-  fans out each step to a subagent with the chosen mode as a prompt overlay),
-  wf_run (plan a submit to ctx.workflowEngine.start — the model actually submits
-  via the native `workflow` tool), wf_collect (plan a wait for the run to settle
-  and return the final JSON value). Use when the model wants to run a real
-  multi-mode pipeline with subagents, parallel, and pipeline primitives, not
-  just a sequential orch_pipeline.
+  Bridge orch plans into ctx.workflowEngine. Three tools:
+  wf_compose (orch_pipeline plan → workflow script fanning each step to a
+  subagent with a mode overlay), wf_run (meta + args for the native
+  `workflow` tool), wf_collect (wait for settle, return final JSON). Use for a
+  real multi-mode subagent pipeline — parallel/pipeline primitives — not just
+  sequential orch_pipeline.
 whenToUse: "Use when the user wants to compose an orch plan into a real workflow script and run it on the substrate's workflow engine."
 metadata:
-  pluginId: wkfl-6 (DEAD after restart — bundle is loaded under a fresh dyno-* id)
-  packageId: pkg-12
+  pluginId: process-local — part of the dyno-pony bundle (e.g. dyno-5)
+  packageId: process-local (minted fresh each session)
   preset: off by default — toggle on
   cordisDefine: "kind=new idPrefix=dyno → load packages/dyno-pony.js from disk"
   actions: [wf_compose, wf_run, wf_collect]
@@ -20,49 +18,27 @@ metadata:
 
 # workflow — Bridge to ctx.workflowEngine
 
-A Dynamic Cordis plugin (pluginId `wkfl-6`, packageId `pkg-12`). Three tools, all model-facing.
+Part of the dyno-pony merged bundle (`rebuild.sh` mounts it). Composes an `orch_pipeline` plan into a real **workflow script** (`agent`, `parallel`, `pipeline`, `phase`, `log`) and submits it to `ctx.workflowEngine` — model submits via the native `workflow` tool.
 
-## What this skill does
-
-Composes an `orch_pipeline` plan into a real **workflow script** (with `agent`, `parallel`, `pipeline`, `phase`, `log`) and submits it to the substrate's `ctx.workflowEngine`. The model does the actual submission via the native `workflow` tool.
-
-## Tools and actions
-
-| Tool | What it returns |
+| Tool | Returns |
 |---|---|
-| `wf_compose(stepsJson, name?)` | The workflow script body. Each step becomes one `agent()` call with a mode overlay. |
-| `wf_run(script, name?, argsJson?)` | The `meta` + `args` block to pass to the native `workflow` tool. |
-| `wf_collect(runId, timeoutMs?)` | The polling bash recipe to wait for the run to settle. |
+| `wf_compose(stepsJson, name?)` | Script body; each step = one `agent()` call with mode overlay |
+| `wf_run(script, name?, argsJson?)` | `meta` + `args` block for the native `workflow` tool |
+| `wf_collect(runId, timeoutMs?)` | Polling bash recipe to wait for settle |
 
-## The mode overlays
+## Mode overlays
 
-- `pony` → "Apply the YAGNI ladder. Stop at the first rung that holds. Reply with the working result."
-- `caveman` → "Terse prose. Drop filler. Reply with the working result."
-- `baseline` → "Normal prose, normal reasoning. Reply with the working result."
+`pony` → YAGNI ladder, first rung that holds · `caveman` → terse, drop filler · `baseline` → normal prose/reasoning. All reply with the working result.
 
-## When to use
+## When / NOT
 
-- User wants to run a real workflow with subagents (not a sequential orch_pipeline).
-- User wants to fan out work to multiple agents in parallel.
-- User wants the substrate's structured-output guarantee (per cookbook line 107).
+- Real multi-agent workflow (parallel fan-out) · substrate structured-output guarantee.
+- NOT one-step tasks (`orch_route`/`orch_pipeline`) · NOT read-only archaeology (`codex`) · NOT tests/specs (`plugin-test`).
 
-## When NOT to use
+## Activating / Deactivating
 
-- For one-step tasks (use orch_route / orch_pipeline instead).
-- For read-only archaeology (use codex instead).
-- For tests / specs (use plugin-test instead).
-
-## Activating
-
-**Not in any default preset.** Toggle on when needed:
-```
-cordis_run pluginId=wkfl-6 packageId=pkg-12 mode=run
-```
-
-## Deactivating
-
-`cordis_stop pluginId=wkfl-6`. Consider stopping after the run is done.
+Comes with the merged bundle — `rebuild.sh` mounts it, no per-skill `cordis_run`. Nothing to disarm (these plan; the native `workflow` tool submits).
 
 ## Source of truth
 
-`Projects/deepseek-harness/.agents/skills/dyno-pony/packages/workflow.js`
+`~/Projects/dyno-pony/packages/workflow.js`

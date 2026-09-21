@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// merge-plugins.js — combine all 10 packages/*.js into a single
-// packages/dyno-pony.js that registers all tools under one plugin.
+// merge-plugins.js — combine every source in the ORDER manifest below into a
+// single packages/dyno-pony.js that registers all tools under one plugin.
 //
 // Strategy:
 //   - For each source file, evaluate it with a fake harness + ctx to capture
 //     the apply function's source via Function.prototype.toString.
 //   - Strip the "function (ctx) { ... }" wrapper, get the body.
-//   - Concatenate all 10 bodies, each wrapped in an IIFE so local `note`,
+//   - Concatenate every body, each wrapped in an IIFE so local `note`,
 //     `stringOutput`, and other names don't collide.
 
 'use strict';
@@ -41,7 +41,8 @@ const HEADER =
   "//\n" +
   "// Combines all 10 historical plugins (pony, caveman, orch, dsh-author, memo,\n" +
   "// plugin-test, codex, memory, workflow, trace) into ONE plugin. Re-apply with:\n" +
-  "//   cordis_define plugin kind=existing pluginId=dp-1 ...\n" +
+  "// Mount it with the loader in rebuild.sh / README.md §Recovery — never paste\n" +
+  "// the file into the context.\n" +
   "//\n" +
   "// Tool count: 37 (orig+sentinels) + 1 (ultimate) = 38 tools.\n" +
   "//\n" +

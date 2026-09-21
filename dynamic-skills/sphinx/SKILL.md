@@ -2,17 +2,14 @@
 name: sphinx
 description: >
   Context budget governor. One tool: `sphinx` with three actions — `audit`
-  (peek at session counters and recommend a course), `checkpoint` (capture
-  a clean summary now and start a quiet window), `predict` (estimate whether
-  the next request will fit). Self-activates on a narrow heuristic: 5+ tool
-  calls since the last sphinx call AND idle, 3+ large file reads, OR 20+ idle
-  turns. Never always-on, never on a fixed keyword. Composes with ponytail
-  (lazy rebuild) and caveman (terse mode). Off with "stop sphinx" or
-  "normal mode".
+  (session counters + recommended course), `checkpoint` (clean summary now +
+  quiet window), `predict` (will the next request fit). Self-activates on:
+  5+ tool calls AND idle, 3+ large reads, OR 20+ idle turns. Never always-on,
+  never a fixed keyword. Off with "stop sphinx" or "normal mode".
 whenToUse: "Use when the model has burned through 5+ tool calls, 3+ large file reads, 20+ idle turns, or the user says 'checkpoint'."
 metadata:
-  pluginId: sphx-1 (DEAD after restart — bundle is loaded under a fresh dyno-* id)
-  packageId: pkg-1
+  pluginId: process-local — part of the dyno-pony bundle (e.g. dyno-5)
+  packageId: process-local (minted fresh each session)
   preset: sentinel-mode
   cordisDefine: "kind=new idPrefix=dyno → load packages/dyno-pony.js from disk"
   actions: [audit, checkpoint, predict]
@@ -20,66 +17,43 @@ metadata:
 
 # Sphinx — context budget governor (حاكم ميزانية السياق)
 
-A Dynamic Cordis plugin (pluginId `sphx-1`, packageId `pkg-1`). One tool: `sphinx`.
+Part of the dyno-pony merged bundle (`rebuild.sh` mounts it). One tool: `sphinx`. Watches session counters, tells the model when context is about to overflow. Three actions:
 
-## What this skill does
-
-Watches the session counters and tells the model when the context is about
-to overflow. Three actions:
-
-- `audit` — peek at `s.toolCallCount`, `s.largeReadCount`, `s.idleTurnCount` and recommend a course
-- `checkpoint` — capture a clean summary now (the 5-step recipe below) and start a 5-turn quiet window
-- `predict` — estimate whether the next request will fit; if not, call `checkpoint` first
+- `audit` — peek at `s.toolCallCount`, `s.largeReadCount`, `s.idleTurnCount`, recommend a course
+- `checkpoint` — clean summary now (5-step recipe below) + 5-turn quiet window
+- `predict` — estimate whether the next request fits; if not, `checkpoint` first
 
 ## When to use
 
-- After 5+ tool calls since the last sphinx call AND the session is idle (no new user message)
-- After 3+ large file reads (> 200 lines)
-- After 20+ idle turns
-- When the user says "checkpoint" or "compact"
+- 5+ tool calls since last sphinx AND idle (no new user message)
+- 3+ large reads (> 200 lines) · 20+ idle turns · user says "checkpoint"/"compact"
 
 ## When NOT to use
 
-- Always-on (that would be the opposite of the heuristic — it would nag)
-- On a fixed keyword without the counter check (the heuristic IS the trigger)
-- For short, simple Q&A turns
+- Always-on (nags) · fixed keyword without counter check · short Q&A
 
-## Heuristic (the exact rule)
+## Heuristic
 
 ```
-audit() fires when ANY of:
-  s.largeReadCount >= 3
-  s.toolCallCount  >= 5 AND s.idleTurnCount >= 20
-  s.idleTurnCount  >= 20
-checkpoint() extends a 5-turn quiet window
-predict() reads the same counters and emits a band verdict
+audit() fires when ANY of: s.largeReadCount >= 3 · s.toolCallCount >= 5 AND s.idleTurnCount >= 20 · s.idleTurnCount >= 20
+checkpoint() extends a 5-turn quiet window · predict() emits a band verdict
 ```
 
-## The 5-step checkpoint recipe
+## Checkpoint recipe
 
-1. List the files you have read this session and one line on each.
-2. List the decisions you have made (with the `ponytail` / `memo` tier).
-3. List the open questions for the user.
-4. Drop every raw file body. Keep paths + takeaways.
-5. Continue from the summary. Do NOT re-read files unless asked.
+1. Files read + one line each. 2. Decisions made (`ponytail`/`memo` tier). 3. Open questions. 4. Drop raw bodies; keep paths + takeaways. 5. Continue from summary; re-read only on ask.
 
 ## Pairing
 
-- `ponytail(mode=ultra)` for the laziest rebuild
-- `caveman(action=terse)` for the shortest reply
-- `memo_classify` to write the checkpoint as an Agent Note
+`ponytail(mode=ultra)` laziest rebuild · `caveman(action=terse)` shortest reply · `memo_classify` checkpoint as Agent Note.
 
 ## Deactivate
 
-`stop sphinx` / `normal mode`. Tool is one composite, no separate toggle.
+`stop sphinx` / `normal mode`. One composite, no toggle.
 
-## Worked example
+## Example
 
 ```
-Turn 23. Tool calls since last sphinx: 7. Idle turns: 22.
-→ Heuristic trips (tool-calls AND idle).
-→ Call sphinx(action="audit").
-→ Verdict: "tool-calls-and-idle (metric=7). Call checkpoint."
-→ Call sphinx(action="checkpoint", scope="files").
-→ 5-turn quiet window. User can keep working.
+Turn 23: 7 tool calls, 22 idle → heuristic trips → sphinx(action="audit")
+→ "tool-calls-and-idle (7). Call checkpoint." → checkpoint(scope="files") → 5-turn quiet window.
 ```

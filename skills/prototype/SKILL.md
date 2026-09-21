@@ -8,32 +8,19 @@ metadata:
   author: dyno-pony/sprint-4
   upstream: derived from mattpocock/skills (MIT, prototype)
 ---
-
 # Prototype
-
-A prototype is **throwaway code that answers a question**. The question decides the shape.
-
+Throwaway code answering one question. Question decides shape.
 ## Pick a branch
-
-Identify which question is being answered, using the user's prompt, surrounding code, or by asking:
-
-- **"Does this logic / state model feel right?"** → single shareable HTML file with free-play buttons + tabbed guided walkthroughs. Pushes the state machine through cases hard to reason about on paper; a non-developer can drive it.
-- **"What should this look like?"** → several radically different UI variations on a single route, switchable via a URL search param and a floating bottom bar.
-
-The two branches produce very different artifacts. If the question is ambiguous and the user isn't reachable, default to whichever branch matches the surrounding code (a backend module → logic; a page/component → UI) and state the assumption at the top of the prototype.
-
-## Rules that apply to both
-
-1. **Throwaway from day one, and clearly marked.** Locate the prototype close to where it will be used (next to the module or page it's prototyping for) so context is obvious; name it so a casual reader sees it's a prototype, not production. For throwaway UI routes, obey whatever routing convention the project uses; don't invent new top-level structure.
-2. **Trivial to run.** A UI prototype starts from one command in the project's task runner. A logic demo is a single HTML file the user double-clicks. No thinking required to start it.
-3. **No persistence by default.** State lives in memory. Persistence is the thing the prototype is *checking*, not something it should depend on. If the question explicitly involves a database, hit a scratch DB or a local file with a clear "PROTOTYPE, wipe me" name.
-4. **Skip the polish.** No tests, no error handling beyond what makes the prototype *runnable*, no abstractions. The point is to learn something fast.
-5. **Surface the state.** After every action (logic) or variant switch (UI), print or render the full relevant state so the user can see what changed.
-6. **Capture it when done.** Fold any validated decision into the real code, then capture the prototype itself as a **primary source**: commit it to a throwaway branch, out of main, and leave a context pointer to that branch on the implementation issue. Capture the answer (the verdict and the question it settled) in the issue or a commit. The main branch keeps only the validated decision.
-
-## What a prototype is NOT
-
-- A spike that ships. Throwaway means throwaway; the validated decision is what lands.
-- A spec. No prose, no acceptance criteria; the prototype *is* the spec for the question.
-- A demo for stakeholders. It's a learning tool, not a presentation.
-- Permanent. Capture the answer in a commit and the prototype in a throwaway branch; the real code is what survives.
+Use prompt, surrounding code, or ask:
+- **Logic feel right?** → single HTML: free-play buttons + tabbed walkthroughs; drives hard-on-paper cases; non-dev drivable.
+- **What look?** → several radically different variations, one route, URL param + floating bottom bar.
+Ambiguous + user unreachable: match surrounding code (backend → logic; page → UI), state assumption up top.
+## Rules (both)
+1. **Throwaway, marked.** Next to module/page; prototype-named; obey routing, no new top-level structure.
+2. **Trivial run.** UI: one task-runner command. Logic: double-click one HTML.
+3. **No persistence.** In-memory; persistence is what's *checked*. DB questions → scratch DB/file "PROTOTYPE, wipe me".
+4. **No polish.** No tests, minimal errors, no abstractions. Learn fast.
+5. **Surface state.** After every action/switch, render full relevant state.
+6. **Capture when done.** Decision → real code; prototype → throwaway branch + issue pointer; verdict in issue/commit. Main keeps decision only.
+## NOT a prototype
+Shippable spike (decision lands, code doesn't) · spec (prototype *is* spec) · stakeholder demo · permanent artifact.

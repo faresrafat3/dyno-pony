@@ -9,8 +9,8 @@ description: >
   tool usage.
 whenToUse: "Use when the user wants to review which dyno-pony tools a session used, or compare two sessions' tool usage patterns."
 metadata:
-  pluginId: trc-7 (DEAD after restart — bundle is loaded under a fresh dyno-* id)
-  packageId: pkg-13
+  pluginId: process-local — part of the dyno-pony bundle (e.g. dyno-5)
+  packageId: process-local (minted fresh each session)
   preset: off by default — toggle on
   cordisDefine: "kind=new idPrefix=dyno → load packages/dyno-pony.js from disk"
   actions: [trc_mode_flow, trc_diff]
@@ -18,55 +18,28 @@ metadata:
 
 # trace — Session mode-flow extraction
 
-A Dynamic Cordis plugin (pluginId `trc-7`, packageId `pkg-13`). Two tools, all model-facing.
+Part of the dyno-pony merged bundle (`rebuild.sh` mounts it). Reviews **dyno-pony tool usage**: reads `session.jsonl.zstd`, extracts dyno-pony calls in order, diffs two sessions side-by-side.
 
-## What this skill does
-
-Specialized workflow for **reviewing dyno-pony tool usage** in a session. Reads the session log (`session.jsonl.zstd`) and extracts just the dyno-pony tool calls (filtered by name). Compares two sessions side-by-side.
-
-## Tools and actions
-
-| Tool | What it returns |
+| Tool | Returns |
 |---|---|
-| `trc_mode_flow(sessionId?)` | Plan a `zstdcat + grep` extraction. The model summarizes the ordered list. |
-| `trc_diff(sessionA, sessionB)` | Plan a side-by-side diff. Per-tool counts, ordering, union/intersection. |
+| `trc_mode_flow(sessionId?)` | `zstdcat + grep` extraction plan; model summarizes ordered list |
+| `trc_diff(sessionA, sessionB)` | Side-by-side plan: per-tool counts, ordering, union/intersection |
 
-## The dyno-pony tool list (auto-tracked)
+## Tracked tools
 
-42 tools across 10 plugins:
-- pony-1: `ponytail` (1)
-- cavm-2: `caveman` (1)
-- orch-3: `orch_route`, `orch_compare`, `orch_pipeline`, `orch_status` (4)
-- dsha-4: `dsh_author_inspect`, `dsh_author_define`, `dsh_author_run`, `dsh_author_validate`, `dsh_author_recover` (5)
-- memo-5: `memo_classify`, `memo_format`, `memo_link`, `memo_scope`, `memo_archive`, `memo_review` (6)
-- ptst-3: `ptest_template`, `ptest_assertions`, `ptest_harness` (3)
-- cdx-4: `cdx_map`, `cdx_symbols`, `cdx_imports`, `cdx_owner`, `cdx_diff` (5)
-- mem-5: `mem_write`, `mem_read`, `mem_search`, `mem_promote` (4)
-- wkfl-6: `wf_compose`, `wf_run`, `wf_collect` (3)
-- trc-7: `trc_mode_flow`, `trc_diff` (2) — recursive; trace counts itself
+One bundle, so a current log names the same `dyno-*` plugin for all of them — group by owner:
+ponytail `ponytail` · caveman `caveman` · orch `orch_route/compare/pipeline/status` · dsh-author `dsh_author_inspect/define/run/validate/recover` · memo `memo_classify/format/link/scope/archive/review` · plugin-test `ptest_template/assertions/harness` · codex `cdx_map/symbols/imports/owner/diff` · memory `mem_write/read/search/promote` · workflow `wf_compose/run/collect` · trace `trc_mode_flow/diff` (recursive) · sphinx `sphinx` · drift `drift` · second-order `second_order` · ultimate `ultimate`. Counts: `scripts/counts.cjs`.
+Pre-merge logs (before 2026-09-04) name per-plugin ids (`pony-1`, `cavm-2`, …) — match by tool name, not id.
 
-## When to use
+## When / NOT
 
-- User wants to know which dyno-pony tools a session actually used.
-- User wants to compare two sessions' mode usage (e.g. before/after adopting a new plugin).
-- User wants to audit a session for over-use of a specific tool.
+- Which tools a session used · compare two sessions (e.g. before/after a plugin) · audit over-use of one tool.
+- NOT full traces (`SessionTelemetryBackend`) · NOT non-dyno-pony calls.
 
-## When NOT to use
+## Activating / Deactivating
 
-- For full session traces (use the substrate's `SessionTelemetryBackend` instead).
-- For non-dyno-pony tool calls (trace only tracks the 42 dyno-pony tools).
-
-## Activating
-
-**Not in any default preset.** Toggle on when needed:
-```
-cordis_run pluginId=trc-7 packageId=pkg-13 mode=run
-```
-
-## Deactivating
-
-`cordis_stop pluginId=trc-7`. Consider stopping after the review is done.
+Comes with the merged bundle — `rebuild.sh` mounts it, no per-skill `cordis_run`. Nothing to switch off (the tools only plan extractions).
 
 ## Source of truth
 
-`Projects/deepseek-harness/.agents/skills/dyno-pony/packages/trace.js`
+`~/Projects/dyno-pony/packages/trace.js`

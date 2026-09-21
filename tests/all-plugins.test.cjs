@@ -1,9 +1,9 @@
 // Node.js native test runner for the dyno-pony merged plugin.
 // Run with: node --test tests/all-plugins.test.cjs
 //
-// After the merge, all 34 tools are registered by ONE plugin file
+// After the merge, every tool is registered by ONE plugin file
 // (packages/dyno-pony.js). This test mounts that file and asserts the
-// standard 4 + 3 + 1 properties across all 34 tools, then also verifies
+// standard 4 + 3 + 1 properties across all of them, then also verifies
 // each original source file (pony.js, caveman.js, ..., trace.js) still
 // works in isolation (so we have not lost anything in the merge).
 
@@ -89,7 +89,7 @@ test('merged: dyno-pony.js mounts without throwing', () => {
   assert.doesNotThrow(() => mount(MERGED_FILE));
 });
 
-test('merged: registers all 34 tools', () => {
+test('merged: registers every tool in the arsenal', () => {
   const host = mount(MERGED_FILE);
   for (const name of TOOLS) {
     assert.ok(host.registered.has(name), `expected tool "${name}" to be registered; got [${[...host.registered.keys()].sort().join(', ')}]`);

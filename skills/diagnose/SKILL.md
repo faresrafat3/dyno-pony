@@ -11,116 +11,99 @@ metadata:
 
 # Diagnose
 
-A discipline for hard bugs. Skip phases only when explicitly justified.
+Discipline for hard bugs. Skip phases only with explicit justification.
 
 ## Redact first
 
-Before showing commands, outputs, or captured artifacts: **redact every secret** (`<REDACTED>` in place). Build loops against env vars, so credentials stay in the environment. If the redacted output is not enough, ask the user.
+Before showing commands/outputs/artifacts: **redact every secret** (`<REDACTED>`). Build loops against env vars. If redacted output insufficient, ask user.
 
 ## Phase 1: Build a feedback loop
 
-**This is the skill.** Everything else is mechanical. With a **tight** pass/fail signal that goes red on *this* bug, the cause is found. Without one, no amount of staring saves you.
+**This is the skill.** Tight pass/fail signal going red on *this* bug finds the cause; staring without one never does.
 
-### Ways to construct one, in roughly this order
+### Construction options, roughly ordered
 
-1. **Failing test** at whatever seam reaches the bug (unit, integration, e2e).
-2. **Curl / HTTP script** against a running dev server.
-3. **CLI invocation** with a fixture, diffing stdout against a known-good snapshot.
-4. **Headless browser** (Playwright / Puppeteer) that drives the UI and asserts on DOM/console/network.
-5. **Replay a captured trace** (HAR file, log dump, event log) through the code path.
-6. **Throwaway harness** — minimal subset of the system that exercises the bug code path.
-7. **Property / fuzz loop** — 1000 random inputs, look for the failure mode.
-8. **Bisection harness** — automate "boot at state X, check, repeat" so you can `git bisect run`.
-9. **Differential loop** — same input through old-version vs new-version, diff outputs.
-10. **HITL bash script** — last resort, if a human must click.
+1. **Failing test** at seam reaching bug (unit/integration/e2e).
+2. **Curl / HTTP script** vs running dev server.
+3. **CLI invocation** w/ fixture, diff stdout vs known-good snapshot.
+4. **Headless browser** (Playwright/Puppeteer) asserting DOM/console/network.
+5. **Replay captured trace** (HAR, log, event log) through code path.
+6. **Throwaway harness** — minimal subset exercising bug path.
+7. **Property / fuzz loop** — 1000 random inputs, find failure mode.
+8. **Bisection harness** — "boot at X, check, repeat" for `git bisect run`.
+9. **Differential loop** — same input through old vs new, diff outputs.
+10. **HITL bash script** — last resort if human must click.
 
 ### Tighten the loop
 
-Treat it as a product. Once you have *a* loop, ask:
+Treat as product. Once *a* loop exists: faster? (skip init, narrow scope.) Sharper? (assert exact symptom, not "didn't crash".) More deterministic? (pin time, seed RNG, isolate FS, freeze net.)
 
-- Can I make it faster? (Skip unrelated init, narrow scope.)
-- Can I make the signal sharper? (Assert the specific symptom, not "didn't crash".)
-- Can I make it more deterministic? (Pin time, seed RNG, isolate FS, freeze network.)
-
-A 30-second flaky loop is barely better than none. A 2-second deterministic one is a debugging superpower.
+30s flaky loop ≈ none. 2s deterministic loop = superpower.
 
 ### Non-deterministic bugs
 
-Goal: a **higher reproduction rate**. Loop the trigger 100×, parallelise, narrow timing windows. A 50%-flake bug is debuggable; 1% is not.
+Goal: **higher reproduction rate**. Loop trigger 100×, parallelise, narrow timing. 50%-flake debuggable; 1% is not.
 
-### When you genuinely cannot build a loop
+### When no loop is possible
 
-Stop and say so. List what you tried. Ask the user for: (a) access to the environment, (b) a redacted artifact (HAR, log, core dump, screen recording), (c) permission for temporary production instrumentation. Do not hypothesise without a loop.
+Stop and say so. List attempts. Ask user for: (a) environment access, (b) redacted artifact (HAR/log/core/screen recording), (c) temp prod instrumentation. No hypothesizing without a loop.
 
 ### Completion criterion
 
-Phase 1 is done when you can name **one command** (script path, test, curl) you have **already run at least once** (show invocation and redacted output) that is:
+Done when you name **one command** (script/test/curl) **already run ≥once** (show invocation + redacted output):
 
-- [ ] **Red-capable**: drives the actual bug code path, asserts the user's exact symptom.
-- [ ] **Deterministic**: same verdict every run (or a pinned, high reproduction rate).
+- [ ] **Red-capable**: drives bug path, asserts exact symptom.
+- [ ] **Deterministic**: same verdict every run (or pinned high repro rate).
 - [ ] **Fast**: seconds, not minutes.
-- [ ] **Agent-runnable**: no human in the loop.
+- [ ] **Agent-runnable**: no human in loop.
 
-If you catch yourself reading code to build a theory before this command exists, **stop**. Jumping to a hypothesis is the exact failure this skill prevents.
+Reading code to theorize before this command exists = the failure this skill prevents. **Stop.**
 
 ## Phase 2: Reproduce + minimise
 
-Run the loop. Watch it go red as the bug appears.
+Run loop. Watch it go red.
 
-- [ ] Failure matches the **user's** symptom, not a nearby one. Wrong bug = wrong fix.
-- [ ] Reproducible across runs (or at a high rate for non-deterministic).
-- [ ] Exact symptom captured for later phases.
+- [ ] Failure = **user's** symptom, not nearby one. Wrong bug = wrong fix.
+- [ ] Reproducible (or high rate if nondeterministic).
+- [ ] Exact symptom captured.
 
-**Minimise.** Cut inputs, callers, config, data, steps **one at a time**, re-running the loop after each cut. Keep only what's load-bearing for the failure.
-
-Done when every remaining element is load-bearing: removing any one makes the loop go green.
+**Minimise:** cut inputs/callers/config/data/steps **one at a time**, re-run after each. Keep only load-bearing.
+Done when removing any remainder turns loop green.
 
 ## Phase 3: Hypothesise
 
-Generate **3–5 ranked hypotheses** before testing any.
+Generate **3–5 ranked hypotheses** before testing any. Each **falsifiable**: "If X, then changing Y removes bug / changing Z worsens it." No prediction = vibe: discard/sharpen.
 
-Each must be **falsifiable**: "If X is the cause, then changing Y will make the bug disappear / changing Z will make it worse." If you can't state the prediction, it's a vibe: discard or sharpen.
-
-**Show the ranked list to the user** before testing. Domain knowledge re-ranks instantly. Don't block; proceed with your ranking if the user is AFK.
+**Show ranked list to user** before testing. Domain knowledge re-ranks instantly. Don't block; proceed w/ your ranking if AFK.
 
 ## Phase 4: Instrument
 
-Each probe must map to a specific prediction from Phase 3. **Change one variable at a time.**
+Each probe maps to one Phase-3 prediction. **One variable at a time.**
 
-Tool preference:
-
-1. **Debugger / REPL inspection** — one breakpoint beats ten logs.
-2. **Targeted logs** at the boundaries that distinguish hypotheses.
+1. **Debugger / REPL** — one breakpoint beats ten logs.
+2. **Targeted logs** at boundaries distinguishing hypotheses.
 3. Never "log everything and grep".
 
-**Tag every debug log** with a unique prefix (`[DEBUG-a4f2]`). Cleanup becomes a single grep. Untagged logs survive; tagged logs die.
+**Tag debug logs** w/ unique prefix (`[DEBUG-a4f2]`); cleanup = one grep. Untagged survive; tagged die.
 
-**Perf branch.** For performance regressions, logs are wrong. Establish a baseline (`performance.now()`, profiler, query plan), then bisect. Measure first, fix second.
+**Perf branch:** logs wrong for perf regressions. Baseline first (`performance.now()`, profiler, query plan), then bisect. Measure, then fix.
 
 ## Phase 5: Fix + regression test
 
-Write the regression test **before** the fix, but only if there is a **correct seam** for it.
+Write regression test **before** fix, but only at a **correct seam** — one exercising the **real bug pattern** at call site. Too-shallow seam (single-caller when bug needs multiple) gives false confidence. **No correct seam = the finding**: architecture prevents lockdown. Flag it.
 
-A correct seam exercises the **real bug pattern** at the call site. If the only seam is too shallow (single-caller when the bug needs multiple callers), a regression test there gives false confidence. **If no correct seam exists, that itself is the finding** — the architecture is preventing lockdown. Flag it.
-
-If a correct seam exists:
-
-1. Turn the minimised repro into a failing test at that seam.
-2. Watch it fail.
-3. Apply the fix.
-4. Watch it pass.
-5. Re-run the Phase 1 loop against the original (un-minimised) scenario.
+If seam exists: minimised repro → failing test → watch fail → fix → watch pass → re-run Phase-1 loop on original scenario.
 
 ## Phase 6: Cleanup
 
-Required before declaring done:
+Before done:
 
-- [ ] Original repro no longer reproduces (re-run Phase 1 loop).
-- [ ] Regression test passes (or absence of seam is documented).
-- [ ] All `[DEBUG-...]` instrumentation removed (grep the prefix).
-- [ ] Throwaway prototypes deleted or moved to a clearly-marked debug location.
-- [ ] The correct hypothesis is stated in the commit / PR message, so the next debugger learns.
+- [ ] Original repro gone (re-ran Phase-1 loop).
+- [ ] Regression test passes (or missing seam documented).
+- [ ] `[DEBUG-...]` removed (grep prefix).
+- [ ] Throwaways deleted / moved to marked debug location.
+- [ ] Correct hypothesis in commit/PR message for next debugger.
 
-## When the diagnosis points to architecture
+## Points to architecture
 
-If the real finding is "there's no good seam to lock the bug down", hand off to `improve-codebase-architecture` with the gap as a deepening opportunity. Architecture-level bugs need architecture-level fixes.
+"No good seam to lock down" → hand off to `improve-codebase-architecture` w/ gap as deepening opportunity.

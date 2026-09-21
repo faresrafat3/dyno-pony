@@ -1,16 +1,15 @@
 ---
 name: memo
 description: >
-  Agent Note writing discipline per DSH AGENTS.md. Six tools: memo_classify (pick the right tier:
-  implemented / proposed / archived / rejected), memo_format (note file template), memo_link
-  (lint relative-Markdown cross-references and fragment anchors), memo_scope (supersession check
-  against the active tree), memo_archive (archive triplet: .md + .zh.md + .i18n.yaml),
-  memo_review (one-pass prose-standard review). Use when the user wants to author, classify,
-  archive, or review an Agent Note.
+  Agent Note discipline per DSH AGENTS.md. Six tools: memo_classify (tier:
+  implemented / proposed / archived / rejected), memo_format (template),
+  memo_link (link lint), memo_scope (supersession check), memo_archive
+  (archive triplet), memo_review (prose review). Use when the user wants to
+  author, classify, archive, or review an Agent Note.
 whenToUse: "Use when the user wants to write a DSH-compliant Agent Note, classify an existing one, archive a triplet, or review a draft against the prose standard."
 metadata:
-  pluginId: memo-5 (DEAD after restart — bundle is loaded under a fresh dyno-* id)
-  packageId: pkg-11
+  pluginId: process-local — part of the dyno-pony bundle (e.g. dyno-5)
+  packageId: process-local (minted fresh each session)
   preset: off by default — toggle on
   cordisDefine: "kind=new idPrefix=dyno → load packages/dyno-pony.js from disk"
   actions: [memo_classify, memo_format, memo_link, memo_scope, memo_archive, memo_review]
@@ -18,55 +17,31 @@ metadata:
 
 # memo — Agent Note authoring
 
-A Dynamic Cordis plugin (pluginId `memo-5`, packageId `pkg-11`). Six tools, all model-facing.
+Part of the dyno-pony merged bundle; six Agent-Note tools.
 
-## What this skill does
+## Tools
 
-Specialized workflow for writing DSH-compliant Agent Notes (per `Projects/deepseek-harness/.agents/notes/AGENTS.md`). Handles classification, formatting, link linting, supersession checks, archival, and prose-standard review.
-
-## Tools and actions
-
-| Tool | What it does |
+| Tool | Returns |
 |---|---|
-| `memo_classify(kind, category?)` | Returns the directory + lifecycle rules for the chosen tier (`implemented` / `proposed` / `archived` / `rejected`). |
-| `memo_format(kind?, title, date?)` | Returns the file template (English source) with `## Problem` / `## Decision` / `## Consequences` / `## Required verification`. |
-| `memo_link(notePath, noteBody?)` | Lints internal relative-Markdown links + fragment anchors. |
-| `memo_scope(draftTitle, draftKeywords?)` | Returns the supersession-check greps and the classification rubric. |
-| `memo_archive(noteBasename, category, reason?)` | Returns the archive procedure (move triplet, rewrite Status header, freeze). |
-| `memo_review(noteBody)` | One-pass review against dsh-prose-standard (slop patterns, sections, identifiers, links). |
+| `memo_classify(kind, category?)` | Tier dir + lifecycle rules (`implemented`/`proposed`/`archived`/`rejected`) |
+| `memo_format(kind?, title, date?)` | Template: `## Problem`/`Decision`/`Consequences`/`Required verification` |
+| `memo_link(notePath, noteBody?)` | Relative-link + fragment-anchor lint |
+| `memo_scope(draftTitle, draftKeywords?)` | Supersession greps + classification rubric |
+| `memo_archive(noteBasename, category, reason?)` | Triplet archive (move, rewrite Status, freeze) |
+| `memo_review(noteBody)` | One-pass dsh-prose-standard review |
 
-## The 4 tiers
+## Tiers
 
-- **implemented** — Active decision record. Rewrite stale facts in place.
-- **proposed** — Pending decision. Lighter weight.
-- **archived** — Frozen. Never edit. Cross-link from superseding note.
-- **rejected** — Decision considered and not taken.
+**implemented** (active; rewrite stale in place) · **proposed** (pending) · **archived** (frozen; cross-link from superseder) · **rejected** (not taken).
 
 ## When to use
 
-- Writing a new Agent Note.
-- Classifying an existing note into a tier.
-- Linting cross-references (relative paths + kebab-case fragments).
-- Checking supersession against the active tree.
-- Archiving a triplet (.md + .zh.md + .i18n.yaml).
-- Reviewing a draft against the prose standard.
-
-## When NOT to use
-
-- For non-DSH documentation (markdown docs in `docs/` use `dsh-doc` instead).
-- For non-note writing (memo is for Agent Notes specifically).
+New note; tiering; ref lint (relative paths + kebab fragments); supersession; triplet archive; prose review. Never for non-DSH docs (`docs/` → `dsh-doc`) or non-note writing.
 
 ## Activating
 
-**Not in any default preset.** Toggle on when needed:
-```
-cordis_run pluginId=memo-5 packageId=pkg-11 mode=run
-```
-
-## Deactivating
-
-`cordis_stop pluginId=memo-5`. Consider stopping after you're done authoring — this is a specialized tool.
+Comes with the merged bundle — `rebuild.sh` mounts it, no per-skill `cordis_run`. Off by default; nothing to switch off (these format and lint text).
 
 ## Source of truth
 
-`Projects/deepseek-harness/.agents/skills/dyno-pony/packages/memo.js`
+`~/Projects/dyno-pony/packages/memo.js`

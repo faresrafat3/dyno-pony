@@ -11,24 +11,15 @@ metadata:
 
 # Domain + Codebase Design
 
-Two related disciplines, one skill.
+Two disciplines, one skill. **Domain modeling** sharpens project *language* (words + relations). **Codebase design** shapes *modules* — lots of behaviour behind small interface, at clean seam, testable through it.
 
-**Domain modeling** is the active discipline of sharpening the project's *language* — the words and the relationships between them. Most projects have a single `CONTEXT.md` glossary; larger ones have a `CONTEXT-MAP.md` pointing to per-context `CONTEXT.md` files. ADRs (Architecture Decision Records) hold the load-bearing decisions.
-
-**Codebase design** is the shared vocabulary for *modules* — a lot of behaviour behind a small interface, at a clean seam, testable through that interface. Reach for it whenever code is being designed or restructured.
+Most projects: single `CONTEXT.md` glossary; larger: `CONTEXT-MAP.md` → per-context files. ADRs hold load-bearing decisions.
 
 ## Part 1: Domain modeling
 
-### When to reach for it
-
-- The user is using a term that conflicts with `CONTEXT.md`.
-- The user uses a fuzzy or overloaded word ("account" doing three jobs).
-- A domain relationship is being discussed; stress-test it with edge cases.
-- A term has been resolved; capture it now, don't batch it up.
+Reach for it when: term conflicts w/ `CONTEXT.md`; fuzzy/overloaded word ("account" × 3 jobs); relationship needs edge-case stress-test; term resolved — capture now, don't batch.
 
 ### File structure
-
-Most repos have a single context:
 
 ```
 /
@@ -39,75 +30,62 @@ Most repos have a single context:
 │       └── 0002-postgres-for-write-model.md
 ```
 
-If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. Follow the map to the right `CONTEXT.md`.
-
-Create files **lazily** — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+`CONTEXT-MAP.md` at root = multiple contexts; follow map to right file. Create lazily — `CONTEXT.md` at first resolved term, `docs/adr/` at first ADR.
 
 ### During a session
 
-1. **Challenge against the glossary.** When the user uses a term that conflicts, call it out: "Your glossary defines X as Y, but you seem to mean Z. Which is it?"
-2. **Sharpen fuzzy language.** "You're saying 'account': do you mean the Customer or the User?"
-3. **Discuss concrete scenarios.** Stress-test the relationship with a specific edge case that forces a boundary decision.
-4. **Cross-reference with code.** When the user says how something works, check the code. If they disagree, surface it.
-5. **Update CONTEXT.md inline.** Right there, not later.
-6. **Offer ADRs sparingly** — only when all three are true:
-   - **Hard to reverse** — changing your mind later is meaningful.
-   - **Surprising without context** — a future reader will wonder "why?".
-   - **Real trade-off** — there were genuine alternatives.
+1. **Challenge vs glossary:** "Glossary says X=Y, you mean Z. Which?"
+2. **Sharpen fuzz:** "'account': Customer or User?"
+3. **Concrete scenarios:** edge case forcing boundary decision.
+4. **Cross-reference code:** user says how it works → check; surface disagreement.
+5. **Update CONTEXT.md inline.** Now, not later.
+6. **ADRs sparingly** — only when all three hold: **hard to reverse** (mind-change costs) · **surprising w/o context** (future "why?") · **real trade-off** (genuine alternatives).
 
 ## Part 2: Codebase design vocabulary
 
-Use these terms exactly. Don't substitute "component," "service," "API," or "boundary."
+Use exactly. Never "component/service/API/boundary."
 
 | Term | Meaning |
 |---|---|
-| **Module** | Anything with an interface and an implementation. Scale-agnostic: function, class, package, tier. |
-| **Interface** | Everything a caller must know: types, invariants, ordering, error modes, performance. |
-| **Implementation** | What's inside a module. |
-| **Depth** | Leverage at the interface: behaviour per unit of interface a caller learns. |
-| **Seam** | A place you can alter behaviour without editing in that place (Feathers). The location of the interface. |
-| **Adapter** | A concrete thing that satisfies an interface at a seam. |
-| **Leverage** | What callers get from depth. More capability per unit of interface. |
-| **Locality** | What maintainers get from depth. Change, bugs, knowledge, verification concentrate in one place. |
+| **Module** | Interface + implementation. Scale-agnostic: fn, class, package, tier. |
+| **Interface** | All caller must know: types, invariants, ordering, errors, perf. |
+| **Implementation** | Inside the module. |
+| **Depth** | Leverage at interface: behaviour per unit caller learns. |
+| **Seam** | Where behaviour alters w/o editing in place (Feathers) = interface location. |
+| **Adapter** | Concrete satisfier of interface at seam. |
+| **Leverage** | Callers' gain from depth: capability per interface unit. |
+| **Locality** | Maintainers' gain: change/bugs/knowledge/verification in one place. |
 
 ### Deep vs shallow
 
-- **Deep** = small interface + lots of implementation (good).
-- **Shallow** = large interface + little implementation (avoid).
+- **Deep** = small interface + lots inside (good).
+- **Shallow** = large interface + little inside (avoid).
 
-When designing, ask: can I reduce methods? simplify params? hide more inside?
+Design question: fewer methods? simpler params? more hidden inside?
 
 ### Principles
 
-- **Depth is a property of the interface**, not the implementation.
-- **The deletion test.** Imagine deleting the module. If complexity vanishes, it was a pass-through. If it reappears across N callers, it was earning its keep.
-- **The interface is the test surface.** Callers and tests cross the same seam.
-- **One adapter = hypothetical seam. Two = real.** Don't introduce a seam unless something actually varies across it.
+- **Depth lives in interface**, not implementation.
+- **Deletion test:** delete module mentally. Complexity vanishes = pass-through. Reappears across N callers = earning keep.
+- **Interface = test surface.** Callers + tests cross same seam.
+- **One adapter = hypothetical seam. Two = real.** No seam until something varies across it.
 
-### Designing for testability
+### Testability
 
-1. **Accept dependencies, don't create them.** Inject the gateway.
-2. **Return results, don't produce side effects.** Compute, don't mutate.
-3. **Small surface area.** Fewer methods = fewer tests. Fewer params = simpler setup.
+1. **Accept deps, don't create.** Inject gateway.
+2. **Return results, don't side-effect.** Compute, don't mutate.
+3. **Small surface.** Fewer methods = fewer tests; fewer params = simpler setup.
 
 ### Relationships
 
-- A **Module** has one **Interface**.
-- **Depth** is measured against the **Interface**.
-- A **Seam** is where the **Interface** lives.
-- An **Adapter** sits at a **Seam** and satisfies the **Interface**.
-- **Depth** produces **Leverage** for callers and **Locality** for maintainers.
+Module has one Interface. Depth measured vs Interface. Seam = Interface location. Adapter sits at Seam, satisfies Interface. Depth → Leverage (callers) + Locality (maintainers).
 
-## Rejected framings (do not use these terms)
+## Rejected framings (never use)
 
-- **Depth as lines-of-implementation / lines-of-interface** (Ousterhout): rewards padding. We use depth-as-leverage.
-- **"Interface" as the TypeScript `interface` keyword**: too narrow.
-- **"Boundary"**: overloaded with DDD's bounded context. Say **seam** or **interface**.
+- **Depth as LoC-ratio** (Ousterhout): rewards padding. Ours = depth-as-leverage.
+- **"Interface" = TS `interface` keyword**: too narrow.
+- **"Boundary"**: DDD-overloaded. Say **seam**/**interface**.
 
-## How the two parts combine
+## Combining both parts
 
-- The domain language (CONTEXT.md) gives *names* to good seams.
-- The codebase-design vocabulary gives the *shape* of a module.
-- `tdd` writes tests at pre-agreed seams.
-- `improve-codebase-architecture` finds deepening opportunities.
-- `grill-with-docs` calls this skill inline to keep both in sync.
+Domain language (CONTEXT.md) *names* good seams; design vocabulary *shapes* modules. `tdd` tests at pre-agreed seams; `improve-codebase-architecture` finds deepening ops; `grill-with-docs` calls this inline to sync both.

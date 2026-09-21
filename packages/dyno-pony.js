@@ -2,7 +2,8 @@
 //
 // Combines all 10 historical plugins (pony, caveman, orch, dsh-author, memo,
 // plugin-test, codex, memory, workflow, trace) into ONE plugin. Re-apply with:
-//   cordis_define plugin kind=existing pluginId=dp-1 ...
+// Mount it with the loader in rebuild.sh / README.md §Recovery — never paste
+// the file into the context.
 //
 // Tool count: 37 (orig+sentinels) + 1 (ultimate) = 38 tools.
 //

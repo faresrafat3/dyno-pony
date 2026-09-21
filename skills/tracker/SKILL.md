@@ -11,20 +11,20 @@ metadata:
 
 # Tracker
 
-A **portable local tracker** rooted at `~/.dsh/tracker/`. The other DSH skills (to-spec, to-tickets, triage, code-review, wayfinder) assume an issue surface; this skill is the default one when no real tracker (GitHub Issues, GitLab, Linear) is configured.
+**Portable local tracker** at `~/.dsh/tracker/`. Default issue surface for to-spec/to-tickets/triage/code-review/wayfinder when no real tracker (GitHub/GitLab/Linear) configured.
 
 ## Layout
 
 ```
 ~/.dsh/tracker/
   config.yaml             # kind: local | github | gitlab, labels, paths
-  issues/<NN>-<slug>.md   # one file per issue, numbered from 01
-  specs/<NN>-<slug>.md    # one file per spec
-  tickets/<NN>-<slug>.md  # one file per ticket
-  labels.md               # canonical label vocabulary (default: 5-state triage)
+  issues/<NN>-<slug>.md   # one per issue, numbered from 01
+  specs/<NN>-<slug>.md    # one per spec
+  tickets/<NN>-<slug>.md  # one per ticket
+  labels.md               # canonical vocabulary (default: 5-state triage)
 ```
 
-Each `<NN>` is zero-padded (`01`, `02`, …) so `ls` returns them in order. Each file starts with a YAML front-matter block carrying the canonical roles, and a body that follows the per-artefact template (see `templates/`).
+`<NN>` zero-padded (`01`, `02`, …) so `ls` orders them. Each file: YAML front-matter w/ canonical roles + body per artefact template (`templates/`).
 
 ## Default config
 
@@ -47,12 +47,12 @@ labels:
   wontfix: wontfix
 ```
 
-The labels follow the canonical triage vocabulary from `mattpocock/skills` so cross-pollination with upstream is free. Override a label to map it to an existing tracker vocabulary (e.g. `needs-triage: "bug:triage"`).
+Labels = canonical triage vocabulary (free upstream cross-pollination). Override to map onto existing tracker vocab (e.g. `needs-triage: "bug:triage"`).
 
 ## Creating an issue
 
-1. Pick the next number under `issues/`: `ls ~/.dsh/tracker/issues | wc -l` then `printf '%02d' "$next"`.
-2. Pick a slug from the issue title (`kebab-case`, ≤ 6 words).
+1. Next number: `ls ~/.dsh/tracker/issues | wc -l` → `printf '%02d' "$next"`.
+2. Slug from title (`kebab-case`, ≤ 6 words).
 3. Write `~/.dsh/tracker/issues/<NN>-<slug>.md`:
 
 ```markdown
@@ -73,39 +73,39 @@ created: 2026-09-05
 - [ ] criterion 2
 ```
 
-4. Run the file count again so the next caller sees the new max.
+4. Re-count so next caller sees new max.
 
 ## Reading issues
 
-- `ls ~/.dsh/tracker/issues` — all issues in numeric order.
+- `ls ~/.dsh/tracker/issues` — all, numeric order.
 - `ls ~/.dsh/tracker/issues | grep "01-"` — issue #1.
-- `cat ~/.dsh/tracker/issues/01-*.md` — read body.
+- `cat ~/.dsh/tracker/issues/01-*.md` — body.
 
 ## Moving through states
 
-Edit the `state:` front-matter key. The five canonical states (default `labels` block above) are the only legal values; any other value is a misuse and trips a checker.
+Edit `state:` front-matter. Five canonical states (default `labels` above) only; other values = misuse, trips checker.
 
 ## Specs and tickets
 
-`specs/<NN>-<slug>.md` mirrors the to-spec template (Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope). `tickets/<NN>-<slug>.md` mirrors the to-tickets template (What to build, Blocked by, Acceptance criteria).
+`specs/<NN>-<slug>.md` mirrors to-spec template (Problem, Solution, User Stories, Implementation/Testing Decisions, Out of Scope). `tickets/<NN>-<slug>.md` mirrors to-tickets (What to build, Blocked by, Acceptance criteria).
 
 ## Blocking edges (local only)
 
-In the local tracker, blocking edges are **named** (text), not native (no GitHub `blocked by` link). The convention: in a ticket's `Blocked by:` section, list the blocking ticket numbers and slugs, not bare ids. `01-foo, 02-bar` is the canonical form.
+Local edges are **named text**, not native links. In ticket `Blocked by:`, list numbers + slugs: `01-foo, 02-bar` canonical — never bare ids.
 
-## When to switch to a real tracker
+## When to switch to real tracker
 
-The local tracker is the **default** for solo, single-machine, or experimental work. Switch to a real tracker (`kind: github` or `kind: gitlab`) the moment:
+Local default for solo/single-machine/experimental. Switch to `github`/`gitlab` when:
 
-- **Multiple humans** need to read or move issues.
-- **External users** are filing requests (bugs, feature asks).
-- **Automation** (CI, release tooling) must observe state changes.
-- **Cross-repo dependencies** require cross-repo links.
+- **Multiple humans** read/move issues.
+- **External users** file requests.
+- **Automation** (CI, releases) must observe states.
+- **Cross-repo deps** need cross-repo links.
 
-The other DSH skills (triage, to-spec, to-tickets) read `config.yaml.kind` and dispatch; switching to `github` swaps the local file writes for `gh issue create` / `gh issue edit` calls.
+Other skills (triage, to-spec, to-tickets) read `config.yaml.kind`; `github` swaps file writes for `gh issue create`/`edit`.
 
 ## Portability and review
 
-- The whole `~/.dsh/tracker/` tree can be committed as a single git repo: `git init` in it, and `to-spec` / `to-tickets` can now be reviewed like any other Markdown.
-- The local tracker never assumes a remote: it works offline, in airgapped machines, and in repos with no `origin`.
-- An exported `tracker-<date>.tar.gz` is a single file that a fresh machine can drop in to reproduce the issue state.
+- `git init` inside `~/.dsh/tracker/` → whole tree reviewable Markdown via to-spec/to-tickets.
+- No remote assumed: offline/airgapped/origin-less OK.
+- `tracker-<date>.tar.gz` = one-file export reproducing issue state on fresh machine.

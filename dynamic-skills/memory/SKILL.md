@@ -1,17 +1,15 @@
 ---
 name: memory
 description: >
-  Hierarchical memory per the home AGENTS.md: per-agent < per-group < per-company
-  < global. Four tools: mem_write (plan a write of a note at a scope), mem_read
-  (plan a read of the k most recent notes from a scope), mem_search (plan a
-  keyword search over a scope), mem_promote (plan a promotion of a note up the
-  hierarchy). Notes are stored as Markdown files under ~/.dsh/memory/<scope>/.
-  Use when the model needs persistent recall across sessions, or to record a
-  decision / convention / finding for later retrieval.
+  Hierarchical memory per home AGENTS.md: per-agent < per-group < per-company
+  < global. Four tools: mem_write, mem_read (k most recent), mem_search,
+  mem_promote (up the hierarchy). Notes under ~/.dsh/memory/<scope>/. Use
+  for persistent recall across sessions, or recording a decision /
+  convention / finding.
 whenToUse: "Use when the user wants to record, recall, search, or promote a memory note at any of the four hierarchy levels."
 metadata:
-  pluginId: mem-5 (DEAD after restart — bundle is loaded under a fresh dyno-* id)
-  packageId: pkg-11
+  pluginId: process-local — part of the dyno-pony bundle (e.g. dyno-5)
+  packageId: process-local (minted fresh each session)
   preset: off by default — toggle on
   cordisDefine: "kind=new idPrefix=dyno → load packages/dyno-pony.js from disk"
   actions: [mem_write, mem_read, mem_search, mem_promote]
@@ -19,54 +17,29 @@ metadata:
 
 # memory — Hierarchical recall
 
-A Dynamic Cordis plugin (pluginId `mem-5`, packageId `pkg-11`). Four tools, all model-facing.
+Part of the dyno-pony merged bundle; four tools. Notes: `~/.dsh/memory/<scope>/<date>-<slug>.md`, hierarchy per home `AGENTS.md`.
 
-## What this skill does
+## Tools
 
-Specialized workflow for **persistent recall**. Notes live as Markdown files under `~/.dsh/memory/<scope>/<date>-<slug>.md`. The scope hierarchy (per-agent < per-group < per-company < global) follows the home `AGENTS.md` memory design.
-
-## Tools and actions
-
-| Tool | What it returns |
+| Tool | Returns |
 |---|---|
-| `mem_write(scope, title, body, tagsCsv?)` | Plan a write. Returns the file path, frontmatter, and body. The model calls native `write` to persist. |
-| `mem_read(scope?, k?, tagsCsv?)` | Plan a read. Returns the `ls -1t` bash command. The model reads the top `k` files. |
-| `mem_search(query, scope?, k?)` | Plan a keyword search. Returns the `grep -rli` bash command. |
-| `mem_promote(notePath, toScope)` | Plan a promotion. Returns the `mv` + `edit` recipe. Refuses demotion. |
+| `mem_write(scope, title, body, tagsCsv?)` | Write plan (path + frontmatter + body); model persists via `write` |
+| `mem_read(scope?, k?, tagsCsv?)` | `ls -1t` command; model reads top `k` |
+| `mem_search(query, scope?, k?)` | `grep -rli` command |
+| `mem_promote(notePath, toScope)` | `mv` + `edit` recipe; up only, refuses demotion |
 
-## The 4 scopes (rank low to high)
+## Scopes (low → high)
 
-- `per-agent` — private to one agent. Default for new notes.
-- `per-group` — shared within a team.
-- `per-company` — shared within an organization.
-- `global` — distilled experience everyone benefits from.
-
-A `mem_promote` only moves a note **up** the hierarchy. Demotion is refused; archive the old note instead.
+`per-agent` (private, default) < `per-group` < `per-company` < `global`. Demotion refused — archive instead.
 
 ## When to use
 
-- User wants to record a decision, convention, or finding for later retrieval.
-- User wants to recall what they learned in past sessions (per-agent scope).
-- User wants to share a finding with the team (per-group, per-company, global).
-- User wants to move a note from a private scope to a shared one.
-
-## When NOT to use
-
-- For ephemeral session state (use `ctx.sessions` instead).
-- For source code or documentation (use the DSH substrate for those).
-- For non-note text (memory is for notes specifically).
+Record/recall/search/promote decisions, conventions, findings at any level. Never for ephemeral state (`ctx.sessions`), source/docs (DSH substrate), or non-note text.
 
 ## Activating
 
-**Not in any default preset.** Toggle on when needed:
-```
-cordis_run pluginId=mem-5 packageId=pkg-11 mode=run
-```
-
-## Deactivating
-
-`cordis_stop pluginId=mem-5`. Consider stopping after you're done.
+Comes with the merged bundle — `rebuild.sh` mounts it, no per-skill `cordis_run`. Off by default; nothing to switch off (the tools only plan reads/writes).
 
 ## Source of truth
 
-`Projects/deepseek-harness/.agents/skills/dyno-pony/packages/memory.js`
+`~/Projects/dyno-pony/packages/memory.js`

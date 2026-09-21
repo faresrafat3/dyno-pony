@@ -8,61 +8,31 @@ metadata:
   author: dyno-pony/sprint-4
   upstream: derived from mattpocock/skills (MIT, to-questionnaire)
 ---
-
 # Questionnaire
-
-Turn something the user can't answer alone into a **questionnaire** — a Markdown document they hand to one person to fill in async, or fill out together over a meeting.
-
-**Grill the send, not the subject.** Interview the user only about the *send* (who it's going to, what they need back). The questions in the document then target the **gap** between what the recipient knows and what the user needs.
-
+User can't answer alone → **questionnaire** for one person, async or meeting. **Grill the send, not the subject:** ask user only who + what-needed-back; questions target recipient-knows vs user-needs gap.
 ## Process
-
-1. **Who is it going to?** Ask, in one exchange, the recipient's role, expertise, and relationship to the user. This fixes the questionnaire's tone and how much context it must carry.
-2. **What do you need back?** Ask, in one exchange, the specific decisions or facts the user can't resolve alone and needs from this person.
-3. **Write the questionnaire.** Draft questions aimed at the gap, following the document structure below. Save it to `to-questionnaire-<slug>.md` in the current directory (slug from the topic) and report the path.
-
+1. **Who?** One exchange: role, expertise, relationship (fixes tone + context load).
+2. **What back?** One exchange: decisions/facts user can't resolve alone.
+3. **Write it.** Gap-aimed questions per structure → `to-questionnaire-<slug>.md`, report path.
 ## Document structure
-
-Frame the document as a **discovery questionnaire**: the user lacks context, the recipient holds it. Order questions most-important-first, since async means you may only get one pass. Group them under `##` headings by theme once there are more than a handful.
-
+Discovery frame: user lacks context, recipient holds it. Most-important-first (async = one pass); `##` themes past a handful.
 ```markdown
-# <Questionnaire title>
-
-**Purpose:** why this questionnaire exists and the decision riding on it.
-
-**From:** <the user>, **To:** <the recipient>, **How your answers will be used:** <where they go>
-
+# <Title>
+**Purpose:** why + decision riding on it.
+**From:** <user>, **To:** <recipient>, **Used for:** <where answers go>
 ## Context
-
-One paragraph orienting a recipient who wasn't in the user's head. Enough to answer well, not a page.
-
+One paragraph for an outsider. Enough to answer well, not a page.
 ## How to answer
-
-Deadline and rough effort. Partial answers and "I don't know" are useful: flag anything you're unsure of rather than skipping it.
-
-## <Theme heading>
-
-One `##` section per theme. Under each, its questions, most-important-first. Every question is one idea, never compound, with an answer stub directly beneath, and a one-line _why this matters_ only where the question could be misread or invite a throwaway answer.
-
-### What load is the system expected to handle at launch?
-
-_Why this matters: it decides whether we provision for burst traffic now or defer it._
-
+Deadline + effort. Partials/"I don't know" welcome — flag uncertainty, don't skip.
+## <Theme>
+One idea per question, never compound, stub beneath, one-line _why this matters_ only where misreadable.
+### What load is expected at launch?
+_Why this matters: decides burst provisioning now vs later._
 >
-
 ## Anything else?
-
-A closing catch-all: anything we didn't ask that we should know?
+Catch-all: anything unasked we should know?
 ```
-
 ## What comes back
-
-The recipient's answers are material for `grill-with-docs` or `to-spec` — fold them into the design discussion or build a spec from them.
-
+Answers feed `grill-with-docs` or `to-spec`.
 ## Anti-patterns
-
-- **Interviewing the user about the subject.** That's `grill-me`. The questionnaire is for the recipient.
-- **Compound questions** ("What X and Y and Z?"). One idea per question.
-- **Compound answers** ("yes and no"). The recipient should pick or say "depends on…".
-- **Burying the most important question** in the middle. Async may only get one pass.
-- **Skipping the context paragraph.** The recipient was not in the user's head; orient them.
+Interview user on subject (that's `grill-me`) · compound Q/A · burying top question · skipping context.

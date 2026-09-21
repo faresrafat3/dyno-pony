@@ -74,7 +74,7 @@ test('convention summary: all 14 plugins are now 2nd-arg compliant', () => {
 });
 
 // ----- merged plugin: every tool's execute reads from 2nd arg (params) -----
-// The merged file (packages/dyno-pony.js) bundles all 34 tools in one file.
+// The merged file (packages/dyno-pony.js) bundles the whole arsenal in one file.
 // We extract each tool's execute signature and assert it reads from `params.X`.
 test('convention: merged dyno-pony.js has all tools 2nd-arg compliant', () => {
   const body = fs.readFileSync(path.join(PACKAGES_DIR, 'dyno-pony.js'), 'utf8');

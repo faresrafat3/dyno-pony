@@ -3,8 +3,13 @@
 #
 #   bash scripts/install.sh
 #
-# Copies the merged bundle into ~/.dsh/dyno-pony/ and the 14 dynamic skills
-# into ~/.dsh/skills/. Idempotent. Never touches the repo copy.
+# Copies the merged bundle into ~/.dsh/dyno-pony/ and every skill — dynamic-skills/
+# (plugin-backed) and skills/ (prose) — into ~/.dsh/skills/. Idempotent. Never
+# touches the repo copy.
+#
+# Both trees: deploying only dynamic-skills/ left the prose skills hand-managed in
+# the runtime, which is how 19 of them drifted a whole compression pass ahead of
+# git (2026-09-20, collected 2026-09-21). collect.sh walks the same two trees.
 #
 # After installing, activate the arsenal in the DSH session with the loader
 # recipe printed at the end (also in README §Recovery).
@@ -22,11 +27,14 @@ mkdir -p "$DSH/dyno-pony/packages" "$DSH/skills"
 cp "$BUNDLE_SRC" "$BUNDLE_DST"
 
 n=0
-for d in "$ROOT"/dynamic-skills/*/; do
-  name="$(basename "$d")"
-  rm -rf "$DSH/skills/$name"
-  cp -r "$d" "$DSH/skills/$name"
-  n=$((n+1))
+for tree in dynamic-skills skills; do
+  [ -d "$ROOT/$tree" ] || continue
+  for d in "$ROOT/$tree"/*/; do
+    name="$(basename "$d")"
+    rm -rf "$DSH/skills/$name"
+    cp -r "$d" "$DSH/skills/$name"
+    n=$((n+1))
+  done
 done
 
 echo "installed: bundle -> $BUNDLE_DST"

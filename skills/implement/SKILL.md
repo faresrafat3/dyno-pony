@@ -11,40 +11,24 @@ metadata:
 
 # Implement
 
-Implement the work described by the user in the spec or tickets.
+Build what the spec/tickets describe.
 
 ## Process
 
-1. **Read the spec and tickets.** Read enough to understand the task graph.
-2. **Confirm the seams.** The `tdd` skill writes tests at pre-agreed seams. Confirm them with the user (or the spec) before writing any test. No test at an unconfirmed seam.
-3. **Drive `tdd` per ticket.** For each ticket:
-   - Write a failing test for one vertical slice.
-   - Watch it fail.
-   - Implement the minimum to pass.
-   - Watch it pass.
-   - Refactor only if a smell is named (call the `code-review` Fowler baseline from the `code-review` skill).
-4. **Typecheck and test regularly.** Typecheck on every meaningful change; run the single test file after every cycle; run the full suite once at the end of the work, not after every cycle.
-5. **Code review before commit.** When the work is done, call the `code-review` skill on the diff since the fixed point. Fix anything raised. Repeat until clean.
-6. **Commit.** Conventional commit message that names the spec or ticket id. Reference the originating spec or issue.
+1. **Read spec + tickets** — enough to see the task graph.
+2. **Confirm seams** — `tdd` tests only at pre-agreed seams; confirm first.
+3. **Drive `tdd` per ticket** — fail one vertical slice → pass with minimum → refactor only on named smell (`code-review` Fowler baseline).
+4. **Typecheck + test** — typecheck per meaningful change; single file per cycle; full suite once at end.
+5. **Review → commit** — `code-review` since fixed point to clean; conventional message naming spec/ticket id.
 
 ## Context hygiene
 
-A long implementation depletes the context window. Stay sharp by:
+One ticket = one sub-context; stop at boundaries, never mid-ticket drift; `drift` on repeat questions → re-scope; `sphinx` when dense → checkpoint beats recovery.
 
-- Treating each ticket as a fresh sub-context where possible. The smaller the ticket, the smaller the context cost.
-- Stopping at the end of each ticket, not mid-ticket. Mid-ticket stopping is recoverable; mid-ticket drift is not.
-- Calling `drift` (the loop detector) when the same question comes up twice. Stop and re-scope if it fires.
-- Calling `sphinx` (context budget governor) when the context is getting dense. A checkpoint now is cheaper than recovery later.
+## When not to use
 
-## When not to use this skill
-
-- The user wants to **plan**, not implement. That's `grill-with-docs` → `to-spec` → `to-tickets`.
-- The user wants a **prototype** to test a design question. That's the `prototype` skill.
-- The user wants a **bug fixed**. That's the `diagnose` skill.
-- The work is small enough to be a one-shot edit. Skip this skill; just edit.
+Plan → `grill-with-docs`/`to-spec`/`to-tickets`; prototype → `prototype`; bug → `diagnose`; one-shot edit → skip skill, just edit.
 
 ## Out of scope
 
-- Spec writing. The spec is the input, not the output.
-- Architecture review. That's `codebase-arch`.
-- Refactoring without a spec. The user owns the design; you implement it.
+Spec writing (input, not output); architecture review (`codebase-arch`); spec-less refactors.

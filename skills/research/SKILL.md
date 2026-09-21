@@ -8,55 +8,19 @@ metadata:
   author: dyno-pony/sprint-4
   upstream: derived from mattpocock/skills (MIT, research)
 ---
-
 # Research
-
-Delegate reading legwork to a **background agent** so the current session keeps working. The subagent investigates, cites, and writes a single Markdown file.
-
-## The brief
-
-A research brief has four sections:
-
-1. **The question.** One paragraph. State what the next session needs to know.
-2. **The scope.** What's in and what's out (versions, platforms, time range).
-3. **The deliverable.** A path for the output file. Use `~/.dsh/research/<YYYY-MM-DD>-<slug>.md` by default, or a repo path the user names.
-4. **The sources.** What counts as a primary source for this question. (Default: official docs, source code, specs, first-party APIs.)
-
-## The subagent's job
-
-1. **Investigate against primary sources.** Not a secondary write-up of them. Follow every claim back to the source that owns it.
-2. **Cite each claim.** Every factual line in the output file carries a source link.
-3. **Write to the deliverable path.** A single Markdown file. Citations inline as `[label](url)` or numbered footnotes.
-4. **Match the repo's convention.** If the repo already keeps research notes somewhere, put it there. If none, the default path is `~/.dsh/research/`.
-
-## When to reach for it
-
-- The question requires reading more than a few hundred lines.
-- The current session is mid-flow and a long read would derail it.
-- The question is reusable — another session will want the same answer later.
-- The answer benefits from citations the user can verify.
-
-## When not to reach for it
-
-- The question is one or two short lookups the current agent can do with `grep` or `web_search` in seconds.
-- The answer is a one-line fact, not a written-up finding.
-- The session is so short-lived that a background subagent will outlive it.
-
-## Working while it reads
-
-The current session does **not** wait. The subagent returns a structured report when it finishes. The current session continues with the part of the work that doesn't depend on the answer; the part that does is parked, picked up when the report lands.
-
+Reading legwork → **background agent**; session keeps working. Subagent investigates, cites, writes one Markdown file.
+## The brief (4 sections)
+1. **Question.** One paragraph: what next session needs. 2. **Scope.** In/out: versions, platforms, range. 3. **Deliverable.** Path: `~/.dsh/research/<YYYY-MM-DD>-<slug>.md`, user-named repo path, or repo's research-notes convention. 4. **Sources.** What counts as primary (default: docs, source, specs, first-party APIs).
+## Subagent's job
+Primary sources only (owning source, not write-ups); cite every factual line inline `[label](url)`/footnotes, no "obvious" exemptions; one file at deliverable path.
+## Reach for it
+Reading > few hundred lines; long read derails mid-flow work; reusable answer; verifiable citations wanted.
+## Not for it
+1-2 quick `grep`/`web_search` lookups; one-line fact; session shorter than subagent lifetime.
+## While it reads
+Don't wait: independent work continues, dependent work parks until report lands.
 ## Anti-patterns
-
-- **Citing the search summary, not the source.** A search hit that paraphrases the docs is not a primary source. Quote the docs.
-- **Restating the question as the answer.** The subagent's job is to find the answer in primary sources, not to rephrase the brief.
-- **Saving the artifact to the workspace by default.** Use `~/.dsh/research/` unless the user names a path. The research file is a session artifact, not project content.
-- **Skipping citations on "obvious" claims.** Every factual line gets one.
-
-## What the next session does with it
-
-The research file is input to the next skill in the chain. Usually:
-
-- `grill-with-docs` — to convert the findings into a design discussion.
-- `to-spec` — to turn the findings into a spec the team can build.
-- `domain-modeling` — to fold new terms into `CONTEXT.md`.
+Search-summary cites · brief-rephrase as answer · workspace-default save · uncited "obvious" claims.
+## Next session
+Feeds `grill-with-docs` (design), `to-spec` (buildable spec), `domain-modeling` (`CONTEXT.md` terms).

@@ -7,60 +7,34 @@ description: >
   padded, polite filler responses. Off with "stop caveman" or "normal mode".
 whenToUse: "Use when the user wants short replies, drop filler, or to remove preamble / sign-offs / politeness padding."
 metadata:
-  pluginId: cavm-2 (DEAD after restart — bundle is loaded under a fresh dyno-* id)
-  packageId: pkg-6
+  pluginId: process-local — part of the dyno-pony bundle (e.g. dyno-5)
+  packageId: process-local (minted fresh each session)
   preset: caveman-mode
   cordisDefine: "kind=new idPrefix=dyno → load packages/dyno-pony.js from disk"
   actions: [terse, prose, mode, reset]
 ---
-
 # Caveman — Terse prose
-
-A Dynamic Cordis plugin (pluginId `cavm-2`, packageId `pkg-6`). One tool: `caveman`.
-
+Part of the dyno-pony merged bundle. One tool: `caveman`.
 ## What this skill does
-
-Governs **HOW the model talks**. Speaks like a tired senior dev: short sentences, no filler, no emoji,
-no "I would be happy to", no "let me", no sign-offs. Drops throat-clearing.
-
+Tired-senior-dev voice: short sentences, no filler/emoji/sign-offs, no "happy to"/"let me".
 ## Tools and actions
-
 | Action | Effect |
 |---|---|
 | `caveman(action="terse", n=3)` | Max N-word replies. Default 3. |
-| `caveman(action="prose")` | Terse prose mode: drop filler, drop throat-clearing, drop sign-offs. **Default.** |
+| `caveman(action="prose")` | Drop filler/throat-clearing/sign-offs. **Default.** |
 | `caveman(action="mode", level="prose")` | Same as `prose()`. |
-| `caveman(action="mode", level="terse")` | Terse mode (3 words max). |
+| `caveman(action="mode", level="terse")` | 3 words max. |
 | `caveman(action="mode", level="one")` | One-word replies. |
-| `caveman(action="reset")` | Revert to normal prose. |
-
+| `caveman(action="reset")` | Normal prose. |
 ## When to use
-
-- User says "caveman" / "terse" / "short" / "concise" / "stop the fluff" / "no preamble".
-- User complains about verbose, padded, polite filler.
-- User wants fragments over paragraphs.
-
+"caveman"/"terse"/"short"/"concise"/"stop the fluff"/"no preamble"; filler complaints; wants fragments.
 ## When NOT to use
-
-- When the user wants a full explanation, not a short reply.
-- For coding tasks (governs prose, not code).
-
+Full explanations; coding tasks (prose, not code).
 ## Activating
-
-Part of the `caveman-mode` and `simple` presets.
-
-```
-cordis_run pluginId=cavm-2 packageId=pkg-6 mode=run
-```
-
+Comes with the merged bundle — `rebuild.sh` mounts it, no per-skill `cordis_run`. Presets: `caveman-mode`+`simple`.
 ## Deactivating
-
-`cordis_stop pluginId=cavm-2`.
-
+`caveman(action=reset)`; whole arsenal: `cordis_stop pluginId=<the bundle's id>`.
 ## Source of truth
-
-`Projects/deepseek-harness/.agents/skills/dyno-pony/packages/caveman.js`
-
+`~/Projects/dyno-pony/packages/caveman.js`
 ## Upstream
-
-github.com/JuliusBrussee/caveman (MIT). Local additions: AR description, single composite tool, soft call-count note.
+github.com/JuliusBrussee/caveman (MIT) + AR description, composite tool, call-count note.

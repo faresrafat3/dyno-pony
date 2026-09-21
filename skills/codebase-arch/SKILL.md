@@ -11,63 +11,25 @@ metadata:
 
 # Codebase Architecture
 
-Surface architectural friction and propose **deepening opportunities** — refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
-
-This skill is informed by the project's domain model and built on a shared design vocabulary (see the `domain` skill: **module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**). Use these terms exactly. Don't drift into "component," "service," "API," or "boundary."
+Surface friction as **deepening opportunities** — refactors turning shallow modules deep (testability + AI-navigability). Use `domain` vocabulary exactly (**module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**); never "component/service/API/boundary."
 
 ## Process
 
 ### 1. Scope (YAGNI)
 
-Deepening a module pays off by making future changes to it easier. **Scope before you scan:** put extra weight on the parts of the codebase that have recently changed.
-
-- If the user named a direction (a module, subsystem, pain point), take it; skip the inference below.
-- Otherwise, walk back the commit history (`git log --oneline`) to find the hot spots — files and areas that keep coming up. Let those paths pull attention first. If changes are scattered, widen the net.
-
-Read the project's `CONTEXT.md` (or follow `CONTEXT-MAP.md`) and any ADRs in the area before scanning.
+Deepening pays where change happens. **Scope before scanning.** User named a direction → take it, skip inference. Else `git log --oneline` hot spots first; scattered → widen. Read `CONTEXT.md` (+`CONTEXT-MAP.md`) and area ADRs first.
 
 ### 2. Explore (sub-agent)
 
-Spawn a sub-agent to walk the codebase. Don't follow rigid heuristics; explore organically and note where friction appears:
-
-- Where does understanding one concept require bouncing between many small modules?
-- Where are modules **shallow**, with an interface nearly as complex as the implementation?
-- Where have pure functions been extracted just for testability, but the real bugs hide in how they're called (no **locality**)?
-- Where do tightly-coupled modules leak across their seams?
-- Which parts are untested, or hard to test through their current interface?
-
-Apply the **deletion test**: would deleting this module concentrate complexity, or just move it? A "yes, concentrates" is the signal you want.
+Spawn a sub-agent; explore organically for: concepts scattered over many small modules · **shallow** modules (interface ≈ implementation) · testability-only pure functions with bugs in callers (no **locality**) · seam leaks / tight coupling · untested or hard-to-test interfaces.
+**Deletion test:** deleting the module concentrates complexity (not just moves it)? "Concentrates" = signal.
 
 ### 3. Present candidates as an HTML report
 
-Write a self-contained HTML file to the OS temp directory. Resolve from `$TMPDIR`, fall back to `/tmp` (or `%TEMP%` on Windows). Path: `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. **Do not** write to the repo.
-
-The report uses **Tailwind via CDN** for layout and styling, and **Mermaid via CDN** for diagrams. Mix Mermaid (graph-shaped relationships) with hand-crafted CSS/SVG (editorial visuals, mass diagrams). Each candidate gets a **before/after visualisation**. Be visual.
-
-For each candidate, render a card with:
-
-- **Files** — which files/modules are involved.
-- **Problem** — why the current architecture causes friction.
-- **Solution** — plain English description of what would change.
-- **Benefits** — locality + leverage + how tests would improve.
-- **Before / After diagram** — side-by-side, custom-drawn.
-- **Recommendation strength** — `Strong` / `Worth exploring` / `Speculative`, as a badge.
-
-End with a **Top recommendation** section: which candidate to tackle first and why.
-
-**Use CONTEXT.md vocabulary** for the domain (e.g. "the Order intake module", not "the FooBarHandler", not "the Order service") and the `domain` skill vocabulary for the architecture.
-
-**ADR conflicts:** if a candidate contradicts an existing ADR, only surface it when the friction is real enough to warrant revisiting. Mark it clearly ("contradicts ADR-0007, but worth reopening because…"). Don't list every theoretical refactor an ADR forbids.
-
-Do NOT propose interfaces yet. After the file is written, open it (`xdg-open` / `open` / `start`) and ask: "Which of these would you like to explore?"
+Self-contained HTML in OS temp dir (`$TMPDIR`→`/tmp`, `%TEMP%` Windows): `<tmpdir>/architecture-review-<timestamp>.html`, fresh per run, **never** in repo. Tailwind + Mermaid via CDN (Mermaid graphs, CSS/SVG editorial visuals); one card per candidate with **before/after visualisation**.
+Card: **Files** · **Problem** (friction) · **Solution** (plain-English change) · **Benefits** (locality + leverage + tests) · **Before/After** side-by-side · **Strength** badge (`Strong`/`Worth exploring`/`Speculative`). Then **Top recommendation** (which first, why) in CONTEXT.md + `domain` terms ("Order intake module"). **ADR conflicts:** only when friction warrants reopening; mark ("contradicts ADR-0007, worth reopening because…").
+No interfaces yet. Open (`xdg-open`/`open`/`start`); ask "Which of these would you like to explore?"
 
 ### 4. Grilling loop
 
-Once the user picks a candidate, call the `grill` skill (grill-with-docs variant) to walk the decision tree: constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
-
-Side effects happen inline as decisions crystallize. Call the `domain` skill to keep the domain model current:
-
-- **Naming a deepened module after a concept not in CONTEXT.md?** Add the term to CONTEXT.md.
-- **Sharpening a fuzzy term during the conversation?** Update CONTEXT.md right there.
-- **User rejects the candidate with a load-bearing reason?** Offer an ADR ("Want me to record this as an ADR so future architecture reviews don't re-suggest it?"). Skip ephemeral or self-evident reasons.
-- **Want to explore alternative interfaces?** Call the `domain` skill's `codebase-design` part and use its design-it-twice parallel sub-agent pattern.
+Pick → `grill` skill (grill-with-docs): constraints, dependencies, deepened shape, behind-seam, surviving tests. Side effects inline via `domain`: new concept → add to CONTEXT.md; sharpened fuzzy term → update it; load-bearing rejection → offer ADR ("record so future reviews don't re-suggest it?"; skip ephemeral); alternative interfaces → `domain` `codebase-design` design-it-twice pattern.
