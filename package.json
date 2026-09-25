@@ -6,6 +6,8 @@
   "scripts": {
     "test": "node --test tests/*.test.cjs",
     "test:preflight": "node --test tests/preflight.test.cjs",
+    "test:count": "node scripts/suite-count.cjs",
+    "test:count:update": "node scripts/suite-count.cjs --update",
     "merge": "node scripts/merge-plugins.cjs",
     "install": "bash scripts/install.sh",
     "collect": "bash scripts/collect.sh"

@@ -39,3 +39,13 @@ jobs:
       # tests/presets.test.cjs validates the committed mirror of ~/.agent-presets
       # and reports the live-vs-mirror drift check as skipped, naming why.
       - run: npm test
+
+      # `npm test` proves the tests that exist pass; it cannot notice that FEWER tests
+      # exist. The runner prints its own total and never compares it to anything, so a
+      # file that loses half its tests still exits 0 with "0 fail" (preflight covers the
+      # file level — >= 11 files, none inert — and says so itself). This re-runs every
+      # file, sums the runner's own totals, and compares them by EQUALITY against the
+      # recorded measurement in tests/expected-suite.json. An intended change re-pins
+      # with `npm run test:count:update`; an unintended one fails the job here.
+      - name: Fail if the suite shrank
+        run: npm run test:count

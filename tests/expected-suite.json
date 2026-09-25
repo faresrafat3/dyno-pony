@@ -1,0 +1,21 @@
+{
+  "what": "Per-file test totals, MEASURED by running each tests/*.test.cjs file. Not written by hand: node scripts/suite-count.cjs --update. Compared by equality in CI, so a silent shrink fails the build.",
+  "recordedAt": "2026-09-25",
+  "measuredOn": "v26.8.2",
+  "fileCount": 11,
+  "floor": 149,
+  "total": 187,
+  "files": {
+    "all-plugins.test.cjs": 60,
+    "conformance.test.cjs": 16,
+    "drift.test.cjs": 11,
+    "execute.test.cjs": 24,
+    "preflight.test.cjs": 17,
+    "presets.test.cjs": 10,
+    "second_order.test.cjs": 11,
+    "skills-sprint4.test.cjs": 1,
+    "snapshot.test.cjs": 11,
+    "sphinx.test.cjs": 11,
+    "ultimate.test.cjs": 15
+  }
+}

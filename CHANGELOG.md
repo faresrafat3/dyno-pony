@@ -13,6 +13,17 @@ English for the record).
   agree". Method + acceptance evidence: `~/local/context/2026-09-21-receipt-round4.md`.
 
 ### Added
+- **The suite count is an invariant now, not a statistic.** `node --test` cannot notice its own
+  shrinkage: a file that loses half its tests still exists, still reports `0 fail` and still exits
+  0. `preflight.test.cjs` says so itself while covering only the *file* level (≥ 11 files, none
+  inert) — nothing covered the count *inside* a file. `scripts/suite-count.cjs` discovers the test
+  files from disk, runs each one, sums the runner's own per-file totals, and compares them by
+  **equality** against `tests/expected-suite.json`: a recorded *measurement* (written only by
+  `--update`, never by hand) rather than a remembered number, because a count exists only once the
+  suite runs (E9). `npm run test:count` verifies, `npm run test:count:update` re-pins after an
+  intended change, and CI runs the verify step on both legs — so a silent drop fails the build and
+  names the file that shrank. Verified in both directions: deleting tests from a file, deleting a
+  file, and *adding* a test each fail the check; the unmodified tree passes.
 - **CI, so the gate runs somewhere other than the author's machine** (`.github/workflows/verify.yml`,
   Node 22 + 26, push/PR). Two repo properties had to be fixed first, and both were real defects:
   (1) the suite was machine-dependent — 9 of 186 tests failed under an empty `HOME`, so no CI could

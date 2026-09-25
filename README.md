@@ -22,6 +22,7 @@ dynamic-skills/         canonical copies of the 14 plugin skills (runtime gets c
 skills/                 prose skills that need no plugin
 tests/                  mount/conformance tests + preflight.test.cjs (the oracle)
 tests/fixtures/         the agent-presets mirror CI verifies against (see its README)
+tests/expected-suite.json  the recorded test-count measurement (scripts/suite-count.cjs)
 docs/                   ARCHITECTURE.md · ANALYSIS.md
 scripts/                merge-plugins.cjs · counts.cjs · install.sh · collect.sh
 ```
@@ -32,6 +33,7 @@ scripts/                merge-plugins.cjs · counts.cjs · install.sh · collect
 
 - **The presets mirror.** `~/.agent-presets/` is the presets' canonical home and CI has none, so `tests/presets.test.cjs` falls back to the committed mirror in `tests/fixtures/agent-presets/` and reports the live-vs-mirror drift check as *skipped with its reason* — never a silent pass. On the owner's machine the live presets are validated and the mirror is proven byte-identical to them.
 - **The canonical checkout path.** The oracle (`tests/preflight.test.cjs`) requires the README's recovery recipe to name a bundle path that exists; its canonical entry is `~/Projects/dyno-pony/packages/dyno-pony.js`. The workflow symlinks its checkout onto that path — the check is right, the path is just absent on a runner.
+- **The count invariant.** `node --test` cannot notice its own shrinkage: a file that loses half its tests still exists, still reports `0 fail` and still exits 0. `preflight.test.cjs` covers the *file* level (≥ 11 files, none inert); nothing covered the count *inside* a file. `scripts/suite-count.cjs` re-runs every `tests/*.test.cjs`, sums the runner's own per-file totals, and compares them by **equality** against `tests/expected-suite.json` — a recorded *measurement*, not a number anyone writes by hand (`--update` is its only writer). CI runs it after the suite on both legs, so a silent drop fails the build and names the file that shrank. After an intended change: `npm run test:count:update`.
 
 
 6 valid compositions (`baseline`, `simple`, `pony-mode`, `caveman-mode`, `sentinel-mode`, `ultimate-mode`) live in `~/.agent-presets/` (runtime, not repo), checked by `tests/presets.test.cjs`. `install.sh` never writes them: preset-mounting is a composition decision (`editing-cordis-compositions`, "decide the plane first") — explicit + reversible.

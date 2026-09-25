@@ -22,7 +22,11 @@ node --test tests/preflight.test.cjs   # alive + true: bundle parses, the mounte
                                        # the derived count, schemas pass the real host guard,
                                        # rebuild.sh's numbers match disk, docs agree with disk
 node --test tests/*.test.cjs           # full suite (the runner prints its own count)
+node scripts/suite-count.cjs           # the count invariant: re-runs every test file and compares the
+                                       # per-file totals by EQUALITY vs tests/expected-suite.json
 ```
+
+Run by CI on push/PR (`.github/workflows/verify.yml`, Node 22 + 26).
 
 Run preflight before every ship/restart/doc-edit. Green run ≠ tool-list proof — verify via `cordis_inspect_query Tool listTools`.
 
@@ -41,6 +45,8 @@ Run preflight before every ship/restart/doc-edit. Green run ≠ tool-list proof 
 ## Counts are derived, never remembered (E6)
 
 `scripts/counts.cjs` = single headline-count source: mounted bundle (tools/sections), merger ORDER (sources), `dynamic-skills/` (skills), `~/.agent-presets/` (presets). `rebuild.sh` prints derivations; oracle compares every number vs disk — stale count turns gate red, never survives quietly.
+
+A **test** count is the same law with one twist: it does not exist in any file, it exists only once the suite RUNS — so it cannot be derived, it must be measured (E9). `tests/expected-suite.json` is therefore a recorded **measurement**, not a remembered number: written only by `node scripts/suite-count.cjs --update`, re-measured on every `npm run test:count`, compared by equality. Editing that JSON by hand to make a red count green is precisely the rot the check exists to catch; an intended change re-pins by running the script.
 
 Rot fixed 2026-09-21: `rebuild.sh` stated **34 tools / 10 skills / 4 presets** since merge (real: 38/14/6) + pinned process-local `dp-1` id (dead after restart). Nothing checked it; oracle does now.
 
