@@ -233,6 +233,42 @@ test('wf_compose generates a workflow script from a 2-step plan', async () => {
   assert.ok(text.includes('return '), 'output should end with a return statement');
 });
 
+test('wf_compose safely quotes user-controlled workflow values', async () => {
+  const r = await mount('dyno-pony.js');
+  const task = 'line 1\nline 2' + String.fromCharCode(92, 39, 34);
+  const mode = 'caveman\nmode';
+  const name = 'pipeline"name\nnext';
+  const steps = JSON.stringify([{ mode, task }]);
+  const blocks = await call(r, 'wf_compose', { stepsJson: steps, name });
+  const script = blocks[0].text;
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+
+  let workflow;
+  assert.doesNotThrow(() => {
+    workflow = new AsyncFunction('agent', 'phase', 'log', script);
+  });
+
+  const phases = [];
+  const prompts = [];
+  const labels = [];
+  const result = await workflow(
+    async (prompt, metadata) => {
+      prompts.push(prompt);
+      labels.push(metadata.label);
+      return 'result-1';
+    },
+    (value) => phases.push(value),
+    () => {},
+  );
+
+  assert.deepEqual(result, { name, stepCount: 1, results: ['result-1'] });
+  assert.deepEqual(phases, [name + ' start', mode + ' step 1']);
+  assert.equal(prompts.length, 1);
+  assert.equal(labels[0], 'step-1-' + mode);
+  assert.ok(prompts[0].startsWith(task + '\n\nMODE OVERLAY:\n'));
+  assert.match(prompts[0], /BASELINE MODE/);
+});
+
 test('wf_compose rejects invalid JSON', async () => {
   const r = await mount('workflow.js');
   const blocks = await call(r, 'wf_compose', { stepsJson: 'not-json' });

@@ -25,6 +25,10 @@ English for the record).
   so the value is the detector — and each branch was proved by mutating what it guards.
 
 ### Fixed
+- **`wf_compose` now emits safe JavaScript string literals for user-controlled values.** Newlines,
+  quotes, and backslashes in task text, modes, labels, or workflow names could break the generated
+  workflow or inject code. The source now uses `JSON.stringify`, and the merged bundle has a
+  regression test that executes a hostile-shaped plan.
 - **The merge script could print a tool count the bundle did not honour.** `allNames` counts the
   `name:` literals the sources *declare*, which is not what registers — a gated or skipped
   registration leaves its literal behind. A bundle with one tool unregistered still reported
