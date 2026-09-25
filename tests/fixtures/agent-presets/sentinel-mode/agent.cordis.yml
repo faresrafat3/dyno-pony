@@ -1,0 +1,52 @@
+# sentinel-mode — opt-in preset for the dyno-pony session sentinels
+#
+# This preset mounts the three "session sentinels" (sphinx, drift, second_order)
+# as a single named bundle. Use this preset when you want the model to
+# self-check its own context budget, live continuity, and forward causality
+# during long sessions.
+#
+# The sentinels are also part of the default dyno-pony merged plugin (sphx-1,
+# dft-1, so-1 are the three new package rows). This preset is for users who
+# want the *standalone* sentinel bundle without the rest of dyno-pony.
+#
+# Use when:
+#   - The session is long (15+ turns) and you want the model to self-check.
+#   - You want budget, continuity, and causality awareness without the full
+#     dyno-pony bundle (caveman/orch/dsh-author/memo/etc).
+#
+# Do NOT use when:
+#   - You already have the dyno-pony merged plugin mounted — the sentinels
+#     are already in there.
+#
+# Deactivate with cordis_stop on each plugin id.
+
+- id: sentinel-mode
+  description: >
+    Opt-in preset for the dyno-pony session sentinels (sphinx, drift,
+    second_order). Mounts the three plugins as a single named bundle.
+    Use when you want the model to self-check its own context budget,
+    live continuity, and forward causality during long sessions, but
+    you do not want the full dyno-pony merged plugin.
+  config:
+    preset_id: sentinel-mode
+    persona_overlay: |
+      You have three sentinels watching you: sphinx (budget), drift
+      (continuity), second_order (causality). Use them when their
+      heuristic trips. Do not narrate private checks to the user. Off
+      with "stop <name>" or "normal mode".
+    active_plugins:
+      - id: sphx-1
+        name: sphinx
+        role: context budget governor
+        actions: [audit, checkpoint, predict]
+        activateOnMount: true
+      - id: dft-1
+        name: drift
+        role: live loop/contradiction detector
+        actions: [loop, contradict, silent]
+        activateOnMount: true
+      - id: so-1
+        name: second_order
+        role: think one step past the change
+        actions: [trace, blast, gate, heuristic, help]
+        activateOnMount: true

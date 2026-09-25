@@ -13,6 +13,17 @@ English for the record).
   agree". Method + acceptance evidence: `~/local/context/2026-09-21-receipt-round4.md`.
 
 ### Added
+- **CI, so the gate runs somewhere other than the author's machine** (`.github/workflows/verify.yml`,
+  Node 22 + 26, push/PR). Two repo properties had to be fixed first, and both were real defects:
+  (1) the suite was machine-dependent — 9 of 186 tests failed under an empty `HOME`, so no CI could
+  ever run it; (2) the oracle requires the README's recovery recipe to name a bundle path that
+  exists, and a runner checks out somewhere else. Fixes: `tests/fixtures/agent-presets/` is a
+  committed **mirror** of `~/.agent-presets/` (still the canonical home — mounting a preset is a
+  composition decision and `install.sh` refuses to write them), so `tests/presets.test.cjs` now
+  validates the live presets when they exist, the mirror when they do not, and proves the two
+  byte-identical on the owner's machine; the workflow symlinks its checkout onto
+  `~/Projects/dyno-pony` so the recipe's canonical path resolves. The live-vs-mirror drift check
+  skips *with its reason* where there is no live dir — reported, never a silent pass.
 - **A check for the skills-to-source seam** (ledger item 3). Every dynamic `SKILL.md` declares
   its `actions:` and nothing verified them, so a renamed or dropped action would rot the doc
   silently while the model kept calling something that is not there. Where the skill's name IS a

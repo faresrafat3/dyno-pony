@@ -8,7 +8,7 @@ Fares-localized dynamic Cordis plugins, skills, presets for DeepSeek Harness. **
 
 | Verb | Command | Meaning |
 |---|---|---|
-| **VERIFY** | `node --test tests/*.test.cjs` | bundle mounts, 38 tools, schemas pass the real host guard, docs agree with disk |
+| **VERIFY** | `node --test tests/*.test.cjs` | bundle mounts, 38 tools, schemas pass the real host guard, docs agree with disk — also run by CI on push/PR (`.github/workflows/verify.yml`, Node 22 + 26) |
 | **DRIVE** | mount the loader (§Recovery) | arsenal live in the session |
 | **ACCRETE** | `bash scripts/collect.sh --apply` | flow live skill fixes back into git |
 | **SHIP** | `bash scripts/install.sh` + commit + push | deploy runtime copies, version, publish |
@@ -21,9 +21,18 @@ packages/*.js           the 14 originals, kept for diffing + the merge script
 dynamic-skills/         canonical copies of the 14 plugin skills (runtime gets copies)
 skills/                 prose skills that need no plugin
 tests/                  mount/conformance tests + preflight.test.cjs (the oracle)
+tests/fixtures/         the agent-presets mirror CI verifies against (see its README)
 docs/                   ARCHITECTURE.md · ANALYSIS.md
 scripts/                merge-plugins.cjs · counts.cjs · install.sh · collect.sh
 ```
+
+## CI — the gate, off the author's machine
+
+`.github/workflows/verify.yml` runs the suite on Node 22 + 26 for every push and PR. Two things make that possible, and both are properties of this repo, not of the runner:
+
+- **The presets mirror.** `~/.agent-presets/` is the presets' canonical home and CI has none, so `tests/presets.test.cjs` falls back to the committed mirror in `tests/fixtures/agent-presets/` and reports the live-vs-mirror drift check as *skipped with its reason* — never a silent pass. On the owner's machine the live presets are validated and the mirror is proven byte-identical to them.
+- **The canonical checkout path.** The oracle (`tests/preflight.test.cjs`) requires the README's recovery recipe to name a bundle path that exists; its canonical entry is `~/Projects/dyno-pony/packages/dyno-pony.js`. The workflow symlinks its checkout onto that path — the check is right, the path is just absent on a runner.
+
 
 6 valid compositions (`baseline`, `simple`, `pony-mode`, `caveman-mode`, `sentinel-mode`, `ultimate-mode`) live in `~/.agent-presets/` (runtime, not repo), checked by `tests/presets.test.cjs`. `install.sh` never writes them: preset-mounting is a composition decision (`editing-cordis-compositions`, "decide the plane first") — explicit + reversible.
 

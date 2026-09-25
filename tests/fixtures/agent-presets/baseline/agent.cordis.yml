@@ -1,0 +1,21 @@
+# baseline preset — vanilla DSH, zero dyno-pony plugins.
+#
+# Use this when you want a clean DSH session with NO skill overlays.
+# No pony, no caveman, no orch, no dsh-author, no memo.
+# Just the base model + native DSH tools.
+#
+# After session start, no dynamic Cordis plugins are running.
+# You can still call cordis_run manually to activate any of the 5
+# dyno-pony plugins on demand, but nothing is automatic.
+
+- id: baseline
+  description: |
+    Vanilla DSH session. Zero dyno-pony plugins.
+    The base model runs alone with native DSH tools (bash, read, write,
+    edit, glob, grep, subagent, todo_write, web_*). No skill overlay is
+    active. Use when you want a clean session without lazy-mindset,
+    terse-prose, or any other mode.
+
+    Capabilities at session start: standard DSH only.
+    Toggle dyno-pony plugins on demand via cordis_run (see dsh-author skill).
+  config: {}

@@ -1,13 +1,29 @@
-// Presets test: load each agent.cordis.yml from ~/.agent-presets/ and assert
-// it has the correct shape (id, description, config). The DSH agent-presets
-// package parses these files; this test mirrors the same shape.
+// Presets test: load each agent.cordis.yml and assert it has the correct shape
+// (id, description, config). The DSH agent-presets package parses these files;
+// this test mirrors the same shape.
+//
+// WHERE THE FILES COME FROM. The canonical home is the runtime dir (PROTECTED.md):
+// mounting a preset is a composition decision, and install.sh refuses to write
+// them. That made this suite machine-dependent — 9 tests failed under an empty
+// HOME, so no CI could ever run it. `tests/fixtures/agent-presets/` is committed
+// as a VERIFICATION INPUT, not a second source of truth:
+//   - live runtime dir present  -> validate IT (unchanged behaviour), and the
+//                                  drift test at the bottom proves the mirror matches it
+//   - absent (CI, fresh clone)  -> validate the committed mirror
+//   - DSH_AGENT_PRESETS set     -> validate that dir (explicit override wins)
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const PRESETS_DIR = process.env.DSH_AGENT_PRESETS || path.join(process.env.HOME, '.agent-presets');
+const FIXTURE_DIR = path.join(__dirname, 'fixtures', 'agent-presets');
+const RUNTIME_DIR = path.join(process.env.HOME || '', '.agent-presets');
+const OVERRIDE = process.env.DSH_AGENT_PRESETS;
+
+const PRESETS_DIR = OVERRIDE || (fs.existsSync(RUNTIME_DIR) ? RUNTIME_DIR : FIXTURE_DIR);
+// Drift is only checkable where the live presets exist to compare against.
+const LIVE_DIR = OVERRIDE ? null : (fs.existsSync(RUNTIME_DIR) ? RUNTIME_DIR : null);
 
 const EXPECTED_PRESETS = [
   { id: 'baseline',     description_includes: 'Vanilla DSH session' },
@@ -55,6 +71,25 @@ test('presets: no extra/unknown presets', () => {
   const expectedIds = EXPECTED_PRESETS.map((p) => p.id);
   for (const d of dirs) {
     assert.ok(expectedIds.includes(d), `unexpected preset dir: ${d}; expected one of ${expectedIds.join(', ')}`);
+  }
+});
+
+test('presets: committed mirror matches the live runtime presets', { skip: LIVE_DIR ? false : 'no live ~/.agent-presets on this machine — the committed mirror is the only copy here' }, () => {
+  // The mirror is a copy, so it can rot. Nothing else would notice: CI validates
+  // the mirror, so a stale copy would pass there while the live preset drifted.
+  // Floor first (E9): a comparison that examines nothing must not report success.
+  assert.ok(LIVE_DIR !== null, 'the drift check needs a live presets dir; it is skipped without one');
+  const mirrored = fs.readdirSync(FIXTURE_DIR).filter((d) => fs.statSync(path.join(FIXTURE_DIR, d)).isDirectory());
+  assert.ok(mirrored.length >= EXPECTED_PRESETS.length,
+    `mirror carries only ${mirrored.length} presets; expected at least ${EXPECTED_PRESETS.length} — a smaller set would compare vacuously`);
+  for (const id of mirrored) {
+    const live = path.join(LIVE_DIR, id, 'agent.cordis.yml');
+    assert.ok(fs.existsSync(live), `live presets are missing ${id}, which the committed mirror carries`);
+    assert.equal(
+      fs.readFileSync(path.join(FIXTURE_DIR, id, 'agent.cordis.yml'), 'utf8'),
+      fs.readFileSync(live, 'utf8'),
+      `mirror for ${id} has drifted from the live preset — re-copy it into tests/fixtures/agent-presets/${id}/`,
+    );
   }
 });
 

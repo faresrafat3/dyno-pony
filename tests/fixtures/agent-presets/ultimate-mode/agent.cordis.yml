@@ -1,0 +1,55 @@
+# ultimate-mode preset — the "go all out" persona
+#
+# This preset is a thin wrapper over the existing dyno-pony merged
+# bundle. The 37 dyno-pony tools (ponytail + caveman + orch + dsh-author
+# + memo + plugin-test + codex + memory + workflow + trace + sphinx +
+# drift + second_order + ultimate) are already registered upstream of
+# this preset. This preset adds:
+#   1. The `ultimate` tool itself, in case the merged plugin is not
+#      loaded (e.g. a session that started with baseline).
+#   2. A persona overlay prompt that tells the model to use every tool
+#      smartly when Fares says "ultimate mode" / "go all out".
+#
+# Use when:
+#   - Fares has a long, important session and wants the model to have
+#     every tool available without micro-managing which one to call.
+#   - Fares explicitly says "ultimate mode" or "go all out".
+#
+# Do NOT use when:
+#   - You only need a subset (pony-mode / caveman-mode / sentinel-mode).
+#   - The session is short (2-3 turns). Ultimate mode is overhead.
+#
+# Deactivate with "stop ultimate" / "exit ultimate" / "normal mode".
+
+- id: ultimate-mode
+  description: |
+    The "go all out" persona. When Fares says "ultimate mode" or
+    "go all out", the model enters a state where every dyno-pony
+    tool is fair game: ponytail (YAGNI), caveman (terse), orch
+    (smart routing), dsh-author (plugin authoring), memo (Agent
+    Notes), plugin-test (Vitest scaffolding), codex (repo archaeology),
+    memory (hierarchical), workflow (subagent fan-out), trace
+    (post-hoc logs), plus the three sentinels (sphinx = budget,
+    drift = continuity, second_order = causality). All 37 tools stay
+    registered; the persona overlay just changes which ones the
+    model reaches for first.
+
+    Disarm: "stop ultimate" / "exit ultimate" / "normal mode".
+  config:
+    preset_id: ultimate-mode
+    persona_overlay: |
+      You are in ULTIMATE MODE. Fares has marked this session as
+      important and wants every tool available. Use them smartly:
+      pony first (YAGNI), caveman second (terse), orch picks modes,
+      sentinels watch your back, codex reads before you build,
+      memo saves your decisions, workflow fans out when it actually
+      fans out, trace reviews at the end. Do not narrate private
+      sentinel checks. Disarm with "stop ultimate".
+    active_plugins:
+      - id: ult-1
+        name: ultimate
+        role: the on/off/status switch for ultimate mode
+        actions: [on, off, status]
+        activateOnMount: false  # Fares says the trigger phrase to arm
+    inherits: pony-mode  # the dyno-pony merged plugin is upstream
+    supersets: [pony-mode, caveman-mode, sentinel-mode]

@@ -1,0 +1,35 @@
+# caveman-mode preset — terse prose only + orchestrator.
+#
+# Active plugins at session start:
+#   1. cavm-2   → caveman     (terse prose, 4 actions)
+#   2. orch-3   → orch_*      (smart mode picker, 4 tools)
+#
+# NOT active (toggle on separately if you need them):
+#   - pony-1   (lazy mindset)
+#   - dsha-4   (plugin authoring)
+#   - memo-5   (Agent Note writing)
+#
+# Use when:
+#   - You want short replies, no preamble, no throat-clearing.
+#   - You want fragments, not paragraphs.
+#   - You're tired of "I would be happy to help" / "Let me know if".
+#   - You want smart routing to caveman for short factual questions.
+#
+# Do NOT use when:
+#   - You want lazy mindset too — use the `simple` preset instead.
+
+- id: caveman-mode
+  description: |
+    Terse prose mode + orchestrator.
+    Active plugins: caveman (drop filler, fragments OK) and orch
+    (smart mode picker). For conversations where you want short replies,
+    no preamble, no throat-clearing. Does NOT include lazy mindset —
+    for that, use the `simple` preset.
+
+    What you get:
+    - caveman: 4 actions (terse / prose / mode / reset)
+    - orch_route / orch_compare / orch_pipeline / orch_status
+
+    What you do NOT get: pony (lazy mindset). dsh-author and memo
+    are also off — toggle them separately when needed.
+  config: {}

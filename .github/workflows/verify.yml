@@ -1,0 +1,41 @@
+name: verify
+
+# The gates this repo already had, run by something other than the author's machine.
+# Before this, "suite green" was only ever true on a box with ~/.agent-presets and
+# a checkout at ~/Projects/dyno-pony — 9 tests failed under an empty HOME.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      matrix:
+        # package.json engines: >=22.19
+        node: [22, 26]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # tests/preflight.test.cjs (the oracle) requires the README's recovery recipe
+      # to name at least one bundle path that EXISTS on disk; its canonical entry is
+      # ~/Projects/dyno-pony/packages/dyno-pony.js. A runner checks out into
+      # $GITHUB_WORKSPACE, so without this the oracle reports the entry tower as
+      # fiction — the check is right, the path is just absent. Symlinking the
+      # checkout onto the path the recipe names is what makes the claim testable.
+      - name: Put the checkout on the canonical path the recovery recipe names
+        run: mkdir -p "$HOME/Projects" && ln -sfn "$GITHUB_WORKSPACE" "$HOME/Projects/dyno-pony"
+
+      # No dependencies (devDependencies: {}), so there is no install step.
+      # tests/presets.test.cjs validates the committed mirror of ~/.agent-presets
+      # and reports the live-vs-mirror drift check as skipped, naming why.
+      - run: npm test
