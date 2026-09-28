@@ -145,11 +145,17 @@ for (const f of ORDER) {
   console.log(f + ': ' + namesInSection.length + ' tools [' + namesInSection.join(', ') + ']');
 
   // Each section may have multiple `harness.registerTool(ctx, X)` calls.
-  // Replace them with `disposers.push(harness.registerTool(ctx, X));` so we
-  // can dispose all of them in one effect.
+  // Route their disposers into the parent `disposers` array WITHOUT clobbering
+  // the local binding: the section's own `ctx.effect` still calls `d1(); d2()`,
+  // so `d1` must stay the disposer FUNCTION. (2026-09-28 fix: a naive
+  // `const d1 = disposers.push(...)` bound d1 to push's return — a NUMBER —
+  // and every stop threw `d1 is not a function` across five sections; the
+  // persistent-adapter mount test caught it by actually calling the disposers.)
+  // Only the bare-identifier form rewrites; `harness.defineTool(tool)`-wrapped
+  // calls cannot match the regex and keep their per-section effects.
   let section = inner.replace(
     /harness\.registerTool\(([^,]+),\s*([^)]+)\)\s*;/g,
-    'disposers.push(harness.registerTool($1, $2));'
+    '(function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool($1, $2));'
   );
   // Some sections also do `ctx.effect(() => d, '<label>')` where d is the
   // disposer from registerTool. Those still work because the IIFE scope has

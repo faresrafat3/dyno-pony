@@ -1376,9 +1376,9 @@ return {
     // -------------------------------------------------------------------------
     // Register all three.
     // -------------------------------------------------------------------------
-    const d1 = disposers.push(harness.registerTool(ctx, templateTool));
-    const d2 = disposers.push(harness.registerTool(ctx, assertionsTool));
-    const d3 = disposers.push(harness.registerTool(ctx, harnessTool));
+    const d1 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, templateTool));
+    const d2 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, assertionsTool));
+    const d3 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, harnessTool));
 
     ctx.effect(function () { return function dispose() {
       d1(); d2(); d3();
@@ -1618,11 +1618,11 @@ return {
     // -------------------------------------------------------------------------
     // Register all five.
     // -------------------------------------------------------------------------
-    const d1 = disposers.push(harness.registerTool(ctx, mapTool));
-    const d2 = disposers.push(harness.registerTool(ctx, symbolsTool));
-    const d3 = disposers.push(harness.registerTool(ctx, importsTool));
-    const d4 = disposers.push(harness.registerTool(ctx, ownerTool));
-    const d5 = disposers.push(harness.registerTool(ctx, diffTool));
+    const d1 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, mapTool));
+    const d2 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, symbolsTool));
+    const d3 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, importsTool));
+    const d4 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, ownerTool));
+    const d5 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, diffTool));
 
     ctx.effect(function () { return function dispose() {
       d1(); d2(); d3(); d4(); d5();
@@ -1775,10 +1775,10 @@ return {
       },
     });
 
-    const d1 = disposers.push(harness.registerTool(ctx, writeTool));
-    const d2 = disposers.push(harness.registerTool(ctx, readTool));
-    const d3 = disposers.push(harness.registerTool(ctx, searchTool));
-    const d4 = disposers.push(harness.registerTool(ctx, promoteTool));
+    const d1 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, writeTool));
+    const d2 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, readTool));
+    const d3 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, searchTool));
+    const d4 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, promoteTool));
 
     ctx.effect(function () { return function dispose() {
       d1(); d2(); d3(); d4();
@@ -1918,9 +1918,9 @@ return {
       },
     });
 
-    const d1 = disposers.push(harness.registerTool(ctx, composeTool));
-    const d2 = disposers.push(harness.registerTool(ctx, runTool));
-    const d3 = disposers.push(harness.registerTool(ctx, collectTool));
+    const d1 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, composeTool));
+    const d2 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, runTool));
+    const d3 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, collectTool));
 
     ctx.effect(function () { return function dispose() {
       d1(); d2(); d3();
@@ -2006,8 +2006,8 @@ return {
       },
     });
 
-    const d1 = disposers.push(harness.registerTool(ctx, flowTool));
-    const d2 = disposers.push(harness.registerTool(ctx, diffTool));
+    const d1 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, flowTool));
+    const d2 = (function (d) { let done = false; const once = function () { if (done) return; done = true; d(); }; disposers.push(once); return once; })(harness.registerTool(ctx, diffTool));
 
     ctx.effect(function () { return function dispose() {
       d1(); d2();
