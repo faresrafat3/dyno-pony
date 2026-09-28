@@ -42,6 +42,9 @@ Repo = canonical; runtime (`~/.dsh/skills/`, `~/.dsh/dyno-pony/`) = `scripts/ins
 
 ## Recovery — after any DSH restart
 
+> **2026-09-28: a persistent install now exists.** `dsh-dyno-pony` (~/Projects/dsh-plugins/dsh-dyno-pony, `dsh plugin --profile web add`) loads the same merged bundle at every boot through a profile row — no cordis_define round-trip, which free LLM routes cannot issue (their providers deliver the nested `plugin` object as an embedded JSON string). The three-call ritual below is the fallback for profiles without the bundle row.
+
+
 Plugin is process-local: restart removes all 38 tools; restore = three calls.
 
 Bundle lookup (oracle asserts ≥1 exists): `~/.dsh/dyno-pony/packages/dyno-pony.js` (deployed by install.sh) → `~/Projects/dyno-pony/packages/dyno-pony.js` (canonical) → `~/Projects/deepseek-harness/.agents/skills/dyno-pony/packages/dyno-pony.js` (legacy).
