@@ -1,10 +1,10 @@
 # ultimate-mode preset — the "go all out" persona
 #
 # This preset is a thin wrapper over the existing dyno-pony merged
-# bundle. The 37 dyno-pony tools (ponytail + caveman + orch + dsh-author
-# + memo + plugin-test + codex + memory + workflow + trace + sphinx +
+# bundle. The 37 dyno-pony tools (caveman + orch + dsh-author + memo
+# + plugin-test + codex + memory + workflow + trace + sphinx +
 # drift + second_order + ultimate) are already registered upstream of
-# this preset. This preset adds:
+# this preset, alongside the upstream `ponytail` skill. This preset adds:
 #   1. The `ultimate` tool itself, in case the merged plugin is not
 #      loaded (e.g. a session that started with baseline).
 #   2. A persona overlay prompt that tells the model to use every tool
@@ -25,7 +25,7 @@
   description: |
     The "go all out" persona. When Fares says "ultimate mode" or
     "go all out", the model enters a state where every dyno-pony
-    tool is fair game: ponytail (YAGNI), caveman (terse), orch
+    tool is fair game: the `ponytail` skill (YAGNI), caveman (terse), orch
     (smart routing), dsh-author (plugin authoring), memo (Agent
     Notes), plugin-test (Vitest scaffolding), codex (repo archaeology),
     memory (hierarchical), workflow (subagent fan-out), trace
@@ -40,7 +40,7 @@
     persona_overlay: |
       You are in ULTIMATE MODE. Fares has marked this session as
       important and wants every tool available. Use them smartly:
-      pony first (YAGNI), caveman second (terse), orch picks modes,
+      the `ponytail` skill first (YAGNI), caveman second (terse), orch picks modes,
       sentinels watch your back, codex reads before you build,
       memo saves your decisions, workflow fans out when it actually
       fans out, trace reviews at the end. Do not narrate private

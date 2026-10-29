@@ -1,17 +1,18 @@
 # pony-mode preset — lazy senior dev mindset + orchestrator.
 #
-# Active plugins at session start:
-#   1. pony-1   → ponytail    (lazy senior dev, 6 actions)
-#   2. orch-3   → orch_*      (smart mode picker, 4 tools)
+# In the session (ONE merged bundle — the per-plugin ids this preset was written
+# against, pony-1 / cavm-2 / orch-3, are dead: E5 forbids pinning them):
+#   - the `ponytail` skill (upstream MIT): mode / review / audit / debt / gain / help
+#   - orch_*   (smart mode picker, 4 tools)
 #
 # NOT active (toggle on separately if you need them):
-#   - cavm-2   (terse prose)
-#   - dsha-4   (plugin authoring)
-#   - memo-5   (Agent Note writing)
+#   - caveman    (terse prose)
+#   - dsh-author (plugin authoring)
+#   - memo       (Agent Note writing)
 #
 # Use when:
-#   - Writing new code: pony's YAGNI ladder keeps you minimal.
-#   - Reviewing changes: ponytail(review) / ponytail(audit).
+#   - Writing new code: the `ponytail` skill's YAGNI ladder keeps you minimal.
+#   - Reviewing changes: the ponytail-review / ponytail-audit skills.
 #   - You want smart routing: orch_route picks pony for build tasks.
 #
 # Do NOT use when:
@@ -20,13 +21,13 @@
 - id: pony-mode
   description: |
     Lazy senior dev mode + orchestrator.
-    Active plugins: pony (YAGNI ladder, over-engineering review) and
+    Active: the `ponytail` skill (YAGNI ladder, over-engineering review) and
     orch (smart mode picker). For coding tasks where you want minimum
     code, no over-engineering, and lazy defaults. Does NOT include
     terse prose — for that, use the `simple` preset.
 
     What you get:
-    - ponytail: 6 actions (mode / review / audit / debt / gain / help)
+    - the `ponytail` skill (upstream): mode / review / audit / debt / gain / help
     - orch_route / orch_compare / orch_pipeline / orch_status
 
     What you do NOT get: caveman (terse prose). dsh-author and memo

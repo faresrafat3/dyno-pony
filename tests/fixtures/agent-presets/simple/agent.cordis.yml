@@ -1,29 +1,29 @@
 # simple preset — the 3 default dyno-pony plugins running together.
 #
-# The 3 plugins that make up "simple mode" are:
-#   1. pony-1   → ponytail   (lazy senior dev / YAGNI)
-#   2. cavm-2   → caveman    (terse prose)
-#   3. orch-3   → orch_*     (smart mode dispatcher)
+# "simple mode" composes (ONE merged bundle + the upstream skill):
+#   - the `ponytail` skill (lazy senior dev / YAGNI)
+#   - caveman    (terse prose)
+#   - orch_*     (smart mode dispatcher)
 #
-# After session start, all 3 are active. The model has access to:
-#   - ponytail(action=mode|review|audit|debt|gain|help)
+# After the bundle is mounted, the model has access to:
+#   - the `ponytail` skill (mode / review / audit / debt / gain / help)
 #   - caveman(action=terse|prose|mode|reset)
 #   - orch_route, orch_compare, orch_pipeline, orch_status
 #
-# To make this preset work, the dyno-pony plugins must be defined and
-# running. Ask the assistant: "rebuild all dyno-pony plugins" after a
-# DSH restart, or use the rebuild.sh procedure.
+# To make this preset work, the merged dyno-pony bundle must be mounted in the
+# session (README.md §Recovery — three cordis calls), or restored after a
+# DSH restart.
 
 - id: simple
   description: |
     The 3 default dyno-pony plugins running together.
-    Active plugins at session start: pony (lazy mindset), caveman
+    In the session: the `ponytail` skill (lazy mindset), caveman
     (terse prose), and orch (smart mode picker). This is the recommended
     everyday preset: gives the model YAGNI defaults, terse prose, and
     the ability to route to a mode automatically.
 
     What you get:
-    - ponytail (6 actions): toggle lazy mindset, review, audit, debt, gain
+    - the ponytail skill (upstream): lazy mindset, review, audit, debt, gain
     - caveman (4 actions): terse, prose, mode, reset
     - orch_route: smart dispatcher that picks pony / caveman / baseline
     - orch_compare: 4-arm side-by-side plan
