@@ -4,7 +4,7 @@
 // After the merge, every tool is registered by ONE plugin file
 // (packages/dyno-pony.js). This test mounts that file and asserts the
 // standard 4 + 3 + 1 properties across all of them, then also verifies
-// each original source file (pony.js, caveman.js, ..., trace.js) still
+// each original source file (caveman.js, ..., trace.js) still
 // works in isolation (so we have not lost anything in the merge).
 
 const test = require('node:test');
@@ -19,8 +19,6 @@ const MERGED_FILE = 'dyno-pony.js';
 // Expected tool names, grouped by original source. After the merge, the
 // groups are flattened into one tool list.
 const TOOLS = [
-  // pony (1)
-  'ponytail',
   // caveman (1)
   'caveman',
   // orch (4)
@@ -47,7 +45,7 @@ const TOOLS = [
 
 // Per-tool parameter sanity. Some tools need a `required` field, others don't.
 // We just check that properties is a non-null object.
-const TOOLS_WITH_REQUIRED = ['memo_classify', 'memo_format', 'dsh_author_define', 'memo_link', 'memo_archive', 'memo_scope', 'ptest_template', 'memo_review', 'dsh_author_run', 'dsh_author_inspect', 'cdx_symbols', 'cdx_imports', 'cdx_owner', 'mem_promote', 'mem_search', 'mem_write', 'mem_read', 'wf_compose', 'wf_run', 'wf_collect', 'trc_diff', 'ponytail', 'caveman'];
+const TOOLS_WITH_REQUIRED = ['memo_classify', 'memo_format', 'dsh_author_define', 'memo_link', 'memo_archive', 'memo_scope', 'ptest_template', 'memo_review', 'dsh_author_run', 'dsh_author_inspect', 'cdx_symbols', 'cdx_imports', 'cdx_owner', 'mem_promote', 'mem_search', 'mem_write', 'mem_read', 'wf_compose', 'wf_run', 'wf_collect', 'trc_diff', 'caveman'];
 
 function makeFakeHost() {
   const registered = new Map();
@@ -142,9 +140,9 @@ test('merged: body ends with "};" not "});"', () => {
   assert.equal(last2, '};', `merged body must end with "};" not "${last2}"`);
 });
 
-test('merged: tool render returns a text block (sample: ponytail)', () => {
+test('merged: tool render returns a text block (sample: caveman)', () => {
   const host = mount(MERGED_FILE);
-  const tool = host.registered.get('ponytail');
+  const tool = host.registered.get('caveman');
   const rendered = tool.output.render({}, 'sample output');
   assert.ok(Array.isArray(rendered));
   assert.equal(rendered[0].type, 'text');
@@ -178,7 +176,7 @@ for (const name of TOOLS) {
 // behavior.
 
 const ORIGINAL_FILES = [
-  'pony.js', 'caveman.js', 'orch.js', 'dsh-author.js', 'memo.js',
+  'caveman.js', 'orch.js', 'dsh-author.js', 'memo.js',
   'plugin-test.js', 'codex.js', 'memory.js', 'workflow.js', 'trace.js',
   'sphinx.js', 'drift.js', 'second_order.js',
   'ultimate.js',

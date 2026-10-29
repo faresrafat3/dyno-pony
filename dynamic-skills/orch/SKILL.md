@@ -17,7 +17,7 @@ metadata:
 
 # Orchestrator — Smart mode dispatcher
 
-Part of the dyno-pony merged bundle; four tools over `pony` + `caveman` + `baseline` (no overlay).
+Part of the dyno-pony merged bundle (37 tools, process-local); four tools over `pony` + `caveman` + `baseline` (no overlay).
 
 ## Tools
 

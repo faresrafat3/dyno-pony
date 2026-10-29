@@ -68,29 +68,6 @@ test('caveman: reset action returns the reset-mode text', async () => {
   assert.equal(blocks[0].type, 'text');
 });
 
-// ----- ponytail -----
-
-test('ponytail: mode action full returns the lazy mindset', async () => {
-  const r = await mount('pony.js');
-  const blocks = await call(r, 'ponytail', { action: 'mode', level: 'full' });
-  assert.equal(blocks[0].type, 'text');
-  assert.ok(blocks[0].text.toLowerCase().includes('yagni') || blocks[0].text.toLowerCase().includes('stop'),
-    'output should mention yagni or stop');
-});
-
-test('ponytail: help action returns the help card', async () => {
-  const r = await mount('pony.js');
-  const blocks = await call(r, 'ponytail', { action: 'help' });
-  assert.equal(blocks[0].type, 'text');
-  assert.ok(blocks[0].text.length > 100, 'help card should be substantial');
-});
-
-test('ponytail: gain action returns benchmark medians', async () => {
-  const r = await mount('pony.js');
-  const blocks = await call(r, 'ponytail', { action: 'gain' });
-  assert.equal(blocks[0].type, 'text');
-});
-
 // ----- orch -----
 
 test('orch: status returns the active plugin list', async () => {

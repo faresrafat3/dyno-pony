@@ -18,7 +18,6 @@ const PKG_DIR = path.join(__dirname, '..', 'packages');
 const OUT = path.join(PKG_DIR, 'dyno-pony.js');
 
 const ORDER = [
-  'pony.js',
   'caveman.js',
   'orch.js',
   'dsh-author.js',
@@ -45,8 +44,11 @@ const header = (origCount, ultimateCount) =>
   "// Built from packages/*.js by scripts/merge-plugins.cjs; do not edit.\n" +
   "// Rebuild: npm run build. The bundle is not tracked in git.\n" +
   "//\n" +
-  "// Combines the 10 historical plugins (pony, caveman, orch, dsh-author, memo,\n" +
+  "// Combines the 9 historical plugins (caveman, orch, dsh-author, memo,\n" +
   "// plugin-test, codex, memory, workflow, trace) plus four session sentinels\n" +
+  "// The local `ponytail` tool was retired 2026-10-29: upstream ponytail\n" +
+  "// (github.com/DietrichGebert/ponytail, MIT) ships as six DSH skills, which\n" +
+  "// are now the canonical ponytail here. See README.md §Provenance.\n" +
   "// (sphinx, drift, second_order, ultimate) into ONE plugin. Re-apply with:\n" +
   "// Mount it with the loader in rebuild.sh / README.md §Recovery — never paste\n" +
   "// the file into the context.\n" +

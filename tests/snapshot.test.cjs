@@ -48,25 +48,6 @@ test('snapshot: caveman(action="prose") mentions "prose mode"', async () => {
   assert.ok(text.toLowerCase().includes('terse'), 'should mention terse as a related mode');
 });
 
-// ---- ponytail ----
-
-test('snapshot: ponytail(action="mode", level="full") mentions yagni', async () => {
-  const r = mount('pony.js');
-  const blocks = await call(r, 'ponytail', { action: 'mode', level: 'full' });
-  const text = blocks[0].text;
-  assert.ok(text.toLowerCase().includes('yagni'),
-    'full mode should mention yagni; got: ' + text.slice(0, 100));
-});
-
-test('snapshot: ponytail(action="help") lists the 6 actions', async () => {
-  const r = mount('pony.js');
-  const blocks = await call(r, 'ponytail', { action: 'help' });
-  const text = blocks[0].text;
-  for (const action of ['mode', 'review', 'audit', 'debt', 'gain', 'help']) {
-    assert.ok(text.includes(action), `help card should mention "${action}"`);
-  }
-});
-
 // ---- memo ----
 
 test('snapshot: memo_classify(kind="implemented") returns the implemented tier rules', async () => {

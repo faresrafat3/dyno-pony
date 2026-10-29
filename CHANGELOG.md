@@ -3,6 +3,29 @@
 All notable changes to the dyno-pony arsenal. English only (E8: Arabic is for chat,
 English for the record).
 
+## [Unreleased] — 2026-10-29
+
+### Removed
+- **The local `ponytail` tool retired; upstream ponytail is the canonical one.** The fork
+  (`packages/pony.js`, 8517 B, 6 composite actions) predated upstream v5.3.3 and shipped a reduced
+  surface: upstream ships **six skills** (`ponytail`, `-review`, `-audit`, `-debt`, `-gain`,
+  `-help`) plus hooks and slash commands, and those are now installed in DSH from the official
+  tarball (`~/.local/share/ponytail`, npm `@dietrichgebert/ponytail@5.3.3`, HEAD
+  `7801d061`). Keeping both meant two things named `ponytail`, one of them smaller.
+- `packages/pony.js` and its `dynamic-skills/ponytail/` copy are gone. The skill copy mattered:
+  `scripts/install.sh` deploys `dynamic-skills/*` into `~/.dsh/skills/`, so the fork would have
+  overwritten the official skill on the next install.
+- Counts follow the disk (E6): **37 tools** (was 38), **13 dynamic skills** (was 14),
+  **13 sources** (was 14). README, AGENTS.md and `docs/ARCHITECTURE.md` updated together.
+
+### Changed
+- **The three dependants point at the skill, not a deleted tool.** `orch_route`/`orch_compare`/
+  `orch_pipeline` overlays, `ultimate`'s persona line and arsenal map, `sphinx`'s pairing line,
+  `trace`'s tool list, and `dsh-author`/`plugin-test` examples now say
+  `skill(name="ponytail")` instead of calling `ponytail(action=…)`. Verified by `npm test`.
+- `ultimate`'s `ARSENAL` map is the registry cross-check the oracle walks, so the `ponytail`
+  row had to leave with the tool rather than linger as a phantom.
+
 ## [Unreleased] — 2026-09-21
 
 ### Changed

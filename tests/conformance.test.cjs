@@ -14,7 +14,6 @@ const PACKAGES_DIR = path.join(__dirname, '..', 'packages');
 
 const PLUGINS = [
   // All plugins should now read from 2nd arg (params). This is the DSH convention.
-  { file: 'pony.js',        tool: 'ponytail',    firstArgName: '_args',  readFromFirst: false, compliance: 'compliant' },
   { file: 'caveman.js',     tool: 'caveman',     firstArgName: '_args',  readFromFirst: false, compliance: 'compliant' },
   { file: 'orch.js',        tool: 'orch_status', firstArgName: '_args',  readFromFirst: false, compliance: 'compliant' },
   { file: 'dsh-author.js',  tool: 'dsh_author_inspect', firstArgName: '_args', readFromFirst: false, compliance: 'compliant' },
@@ -81,7 +80,7 @@ test('convention: merged dyno-pony.js has all tools 2nd-arg compliant', () => {
   // Find every "name: 'X'" and within 4000 bytes, look for "execute:".
   const re = /name:\s*'([a-zA-Z_][\w]*)'/g;
   let m;
-  const toolCount = 38;
+  const toolCount = 37;
   const checked = [];
   while ((m = re.exec(body)) !== null) {
     const name = m[1];

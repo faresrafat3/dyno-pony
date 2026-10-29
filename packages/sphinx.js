@@ -110,7 +110,7 @@ return {
           '- if predicted 80-100% → answer tersely (caveman terse mode).',
           '- if predicted < 80% → answer normally.',
           '',
-          'Pair with: `ponytail(mode=ultra)` for the laziest rebuild, or ' +
+          'Pair with: the `ponytail` skill (ultra) for the laziest rebuild, or ' +
             '`caveman(action=terse)` for the shortest reply.',
         ].join('\n'));
       },

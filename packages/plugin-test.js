@@ -41,7 +41,7 @@ return {
       parameters: {
         type: 'object',
         properties: {
-          toolName: { type: 'string', description: 'The model-facing tool name (e.g. "ponytail", "caveman").' },
+          toolName: { type: 'string', description: 'The model-facing tool name (e.g. "caveman", "sphinx").' },
           pluginId: { type: 'string', description: 'The cordis pluginId that owns the tool (e.g. "pony-1").' },
           packageId: { type: 'string', description: 'The cordis packageId for the current build (e.g. "pkg-9").' },
         },

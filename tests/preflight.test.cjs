@@ -38,7 +38,7 @@ const TESTS_DIR = path.join(ROOT, 'tests');
 const counts = require(path.join(ROOT, 'scripts', 'counts.cjs'));
 
 const EXPECTED_TOOLS = [
-  'ponytail', 'caveman',
+  'caveman',
   'orch_route', 'orch_compare', 'orch_pipeline', 'orch_status',
   'dsh_author_inspect', 'dsh_author_define', 'dsh_author_run', 'dsh_author_validate', 'dsh_author_recover',
   'memo_classify', 'memo_format', 'memo_link', 'memo_scope', 'memo_archive', 'memo_review',
@@ -141,9 +141,9 @@ test('the two parameter DSL forms stay mutually exclusive (regression: inverted 
   }), /belongs to the containing raw object schema/);
 });
 
-test('canonical skills: 14 dirs, each with SKILL.md naming its tools', () => {
+test('canonical skills: 13 dirs, each with SKILL.md naming its tools', () => {
   const dirs = fs.readdirSync(SKILLS_DIR).filter((d) => fs.statSync(path.join(SKILLS_DIR, d)).isDirectory());
-  assert.equal(dirs.length, 14, `expected 14 canonical dynamic skills, found: ${dirs.join(', ')}`);
+  assert.equal(dirs.length, 13, `expected 13 canonical dynamic skills, found: ${dirs.join(', ')}`);
   for (const d of dirs) {
     const p = path.join(SKILLS_DIR, d, 'SKILL.md');
     assert.ok(fs.existsSync(p), `dynamic-skills/${d}/SKILL.md missing`);

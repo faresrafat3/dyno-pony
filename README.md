@@ -1,6 +1,6 @@
 # dyno-pony — the agent mode + skill arsenal for DSH
 
-Fares-localized dynamic Cordis plugins, skills, presets for DeepSeek Harness. **Verified state: 1 merged plugin, 38 tools, 14 dynamic skills — suite green.** Counts derived from disk (`scripts/counts.cjs`), cross-checked by `tests/preflight.test.cjs` (+`rebuild.sh`): stale number turns gate red. Oracle beats this line on disagreement.
+Fares-localized dynamic Cordis plugins, skills, presets for DeepSeek Harness. **Verified state: 1 merged plugin, 37 tools, 13 dynamic skills — suite green.** Counts derived from disk (`scripts/counts.cjs`), cross-checked by `tests/preflight.test.cjs` (+`rebuild.sh`): stale number turns gate red. Oracle beats this line on disagreement.
 
 **Agent entry:** [AGENT-ERGONOMICS.md](AGENT-ERGONOMICS.md) — operating manual: principles, measured failure costs, four-verb cycle.
 
@@ -8,7 +8,7 @@ Fares-localized dynamic Cordis plugins, skills, presets for DeepSeek Harness. **
 
 | Verb | Command | Meaning |
 |---|---|---|
-| **VERIFY** | `npm test` | builds the bundle, then mounts it: 38 tools, schemas pass the real host guard, docs agree with disk — also run by CI on push/PR (`.github/workflows/verify.yml`, Node 22 + 26) |
+| **VERIFY** | `npm test` | builds the bundle, then mounts it: 37 tools, schemas pass the real host guard, docs agree with disk — also run by CI on push/PR (`.github/workflows/verify.yml`, Node 22 + 26) |
 | **DRIVE** | mount the loader (§Recovery) | arsenal live in the session |
 | **ACCRETE** | `bash scripts/collect.sh --apply` | flow live skill fixes back into git |
 | **SHIP** | `bash scripts/install.sh` + commit + push | deploy runtime copies, version, publish |
@@ -16,9 +16,9 @@ Fares-localized dynamic Cordis plugins, skills, presets for DeepSeek Harness. **
 ## Layout — one home, one truth
 
 ```
-packages/*.js           the 14 originals — the sources the merge composes
-packages/dyno-pony.js   generated bundle: 38 tools, one apply(), one disposer (built by `npm run build`)
-dynamic-skills/         canonical copies of the 14 plugin skills (runtime gets copies)
+packages/*.js           the 13 originals — the sources the merge composes
+packages/dyno-pony.js   generated bundle: 37 tools, one apply(), one disposer (built by `npm run build`)
+dynamic-skills/         canonical copies of the 13 plugin skills (runtime gets copies)
 skills/                 prose skills that need no plugin
 tests/                  mount/conformance tests + preflight.test.cjs (the oracle)
 tests/fixtures/         the agent-presets mirror CI verifies against (see its README)
@@ -45,7 +45,7 @@ Repo = canonical; runtime (`~/.dsh/skills/`, `~/.dsh/dyno-pony/`) = `scripts/ins
 > **2026-09-28: a persistent install now exists.** `dsh-dyno-pony` (~/Projects/dsh-plugins/dsh-dyno-pony, `dsh plugin --profile web add`) loads the same merged bundle at every boot through a profile row — no cordis_define round-trip, which free LLM routes cannot issue (their providers deliver the nested `plugin` object as an embedded JSON string). The three-call ritual below is the fallback for profiles without the bundle row.
 
 
-Plugin is process-local: restart removes all 38 tools; restore = three calls.
+Plugin is process-local: restart removes all 37 tools; restore = three calls.
 
 Bundle lookup (oracle asserts ≥1 exists): `~/.dsh/dyno-pony/packages/dyno-pony.js` (deployed by install.sh) → `~/Projects/dyno-pony/packages/dyno-pony.js` (canonical; `npm run build` creates it).
 
@@ -83,7 +83,7 @@ return {
 
 **2. `cordis_run pluginId=<returned> packageId=<returned> mode=run`.** `tool "X" is already registered` = stale holder: `cordis_inspect_self` → `cordis_stop pluginId=<holder>` → rerun.
 
-**3. Verify** — `cordis_inspect_query` provider `Tool`/`listTools` must list all 38 tools. Green run alone ≠ evidence.
+**3. Verify** — `cordis_inspect_query` provider `Tool`/`listTools` must list all 37 tools. Green run alone ≠ evidence.
 
 > Sandbox (verified 2026-09-18): `Function`/`eval` yes, `process` no; `inject: ['fs']` = `ctx.fs.resolve`+`readText`, absolute paths only.
 
@@ -109,11 +109,11 @@ bash scripts/install.sh               # redeploy to the runtime
 | `parameters` (raw wrapper) | `type:'object'` + `properties` + root `required: ['name']` | per-property `required: true` → `belongs to the containing raw object schema` |
 | `output.schema` | per-property `required: true` + **explicit** `additionalProperties: false` | root `required` array → `not supported by the value schema DSL` |
 
-Both asserted executable in `tests/preflight.test.cjs`. Full detail + error text: `dynamic-skills/ponytail/SKILL.md` §Schema contract.
+Both asserted executable in `tests/preflight.test.cjs`; the error text quoted above is verbatim from the host guard.
 
 ## Skills
 
-**Dynamic (14, in `dynamic-skills/`, each backed by bundle tools):** ponytail · caveman · orch · dsh-author · memo · plugin-test · codex · memory · workflow · trace · sphinx · drift · second-order · ultimate
+**Dynamic (13, in `dynamic-skills/`, each backed by bundle tools):** caveman · orch · dsh-author · memo · plugin-test · codex · memory · workflow · trace · sphinx · drift · second-order · ultimate
 
 **Prose (in `skills/`, no dyno-pony bundle tools):** codebase-arch · code-review · diagnose · domain · dspy-lab · fallback-chain · git-guardrails · grill · handoff · implement · implement-spec · model-dashboard · openresearch · prototype · questionnaire · research · to-spec · to-tickets · tracker · triage · ts-deep-modules · wayfinder · webchain · writing-agents
 
@@ -123,7 +123,7 @@ Five (`fallback-chain`, `webchain`, `model-dashboard`, `dspy-lab`, `openresearch
 
 | Upstream | License | Local additions |
 |---|---|---|
-| `DietrichGebert/ponytail` | MIT | AR description, single composite tool, soft call-count note |
+| `DietrichGebert/ponytail` | MIT | none — the six upstream skills (5.3.3) are installed directly; the local composite fork was retired 2026-10-29 |
 | `JuliusBrussee/caveman` | MIT | Fares-localized fork |
 
 Everything else is original. [CHANGELOG.md](CHANGELOG.md): version history + honest break/fix record.

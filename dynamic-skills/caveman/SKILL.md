@@ -14,7 +14,7 @@ metadata:
   actions: [terse, prose, mode, reset]
 ---
 # Caveman — Terse prose
-Part of the dyno-pony merged bundle. One tool: `caveman`.
+Part of the dyno-pony merged bundle (37 tools, process-local). One tool: `caveman`.
 ## What this skill does
 Tired-senior-dev voice: short sentences, no filler/emoji/sign-offs, no "happy to"/"let me".
 ## Tools and actions

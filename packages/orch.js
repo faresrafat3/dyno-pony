@@ -72,7 +72,7 @@ return {
             '# Mode: pony (lazy senior dev + terse prose)',
             '',
             'Apply these overlays for this turn:',
-            '1. Call `ponytail(action="mode", level="full")` once at the start.',
+            '1. Load the `ponytail` skill (upstream MIT): `skill(name="ponytail")`.',
             '2. Call `caveman(action="prose")` once to apply terse prose.',
             '3. Then do the task with that combined framing.',
             '',
@@ -120,9 +120,9 @@ return {
         const plan = '# orch_compare — ' + arms.length + ' arms plan\n\nTask: ' + task + '\n\nSave each arm to: ' + outDir + '/<arm>.md\n\nPer-arm instructions:\n\n';
         const armBlocks = arms.map(function (arm) {
           if (arm === 'baseline') return '## baseline\n- No skill overlay.\n- Default prose, default reasoning.\n- Save to: ' + outDir + '/baseline.md';
-          if (arm === 'pony') return '## pony\n- Load `ponytail(action="mode", level="full")` first.\n- Apply the lazy mindset, do the task, save to ' + outDir + '/pony.md';
+          if (arm === 'pony') return '## pony\n- Load the `ponytail` skill (`skill(name="ponytail")`) first.\n- Apply the lazy mindset, do the task, save to ' + outDir + '/pony.md';
           if (arm === 'caveman') return '## caveman\n- Load `caveman(action="prose")` first.\n- Apply terse prose, do the task, save to ' + outDir + '/caveman.md';
-          return '## pony-caveman (combined)\n- Load `ponytail(action="mode", level="full")` first.\n- Load `caveman(action="prose")` second.\n- Apply both, do the task, save to ' + outDir + '/pony-caveman.md';
+          return '## pony-caveman (combined)\n- Load the `ponytail` skill (`skill(name="ponytail")`) first.\n- Load `caveman(action="prose")` second.\n- Apply both, do the task, save to ' + outDir + '/pony-caveman.md';
         });
         const footer = '\n\n## Aggregation\nAfter all arms finish, write ' + outDir + '/SUMMARY.md with:\n- which arm produced the smallest output (lines / tokens),\n- which arm took the least reasoning turns,\n- which arm is the Fares pick for this task class.\n\nUse the `bash` tool to mkdir and write files. Use `write` tool for content.';
         return note(plan + armBlocks.join('\n\n') + footer);
@@ -147,9 +147,9 @@ return {
         const header = '# orch_pipeline — ' + steps.length + ' steps\n\nRun each step in order. At each step boundary, load the named mode, do the step task, write the output, then move on.\n\n';
         const blocks = steps.map(function (s, i) {
           let modeOverlay = 'No mode overlay.';
-          if (s.mode === 'pony') modeOverlay = 'Load: `ponytail(action="mode", level="full")`.';
+          if (s.mode === 'pony') modeOverlay = 'Load the `ponytail` skill: `skill(name="ponytail")`.';
           else if (s.mode === 'caveman') modeOverlay = 'Load: `caveman(action="prose")`.';
-          else if (s.mode === 'pony-caveman') modeOverlay = 'Load: `ponytail(action="mode", level="full")` then `caveman(action="prose")`.';
+          else if (s.mode === 'pony-caveman') modeOverlay = 'Load the `ponytail` skill (`skill(name="ponytail")`) then `caveman(action="prose")`.';
           return '## Step ' + (i + 1) + ' — ' + (s.mode || 'baseline') + '\nTask: ' + (s.task || '') + '\n' + modeOverlay;
         });
         const footer = '\n\n## Boundaries\n- Each step keeps its own mode for that step\'s turn only.\n- The next step may use a different mode.\n- No persistent mode state is set across steps unless the model explicitly calls the skill.';
@@ -167,7 +167,7 @@ return {
           '# orch status',
           '',
           'Active modes in this session:',
-          '- pony   — ponytail tool (6 actions: mode, review, audit, debt, gain, help)',
+          '- pony   — the `ponytail` skill (upstream MIT: ponytail, -review, -audit, -debt, -gain, -help)',
           '- caveman — caveman tool (4 actions: terse, prose, mode, reset)',
           '- orch    — this toolset (4 tools: route, compare, pipeline, status)',
           '- baseline — always on (current session default)',

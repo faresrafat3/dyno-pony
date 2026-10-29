@@ -1,7 +1,7 @@
 # dyno-pony architecture
 
 > **Historical snapshot — the pre-merge era (committed 2026-09-18).** Current state lives in the
-> README (**1 merged plugin · 38 tools · 14 dynamic skills · 6 presets**, all derived by
+> README (**1 merged plugin · 37 tools · 13 dynamic skills · 6 presets**, all derived by
 > `scripts/counts.cjs`) and in `AGENT-ERGONOMICS.md`. Statements below about plugin/tool/skill/
 > preset inventory describe that period, not the present.
 

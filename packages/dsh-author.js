@@ -306,7 +306,7 @@ return {
           '- cordis_undefine pluginId=' + id + '   (permanent removal)',
           '',
           'If IDs are unknown: cordis_inspect_list for the inspect catalog,',
-          'then listTools to see which tools are visible (caveman, ponytail, orch_*).',
+          'then listTools to see which tools are visible (caveman, orch_*, memo_*).',
         ].join('\n'));
       },
     };

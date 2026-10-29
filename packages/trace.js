@@ -34,7 +34,7 @@ return {
     const ready = !!(sessionQuery && typeof sessionQuery.filterEvents === 'function');
 
     const DYNOPONY_TOOLS = [
-      'ponytail', 'caveman',
+      'caveman',
       'orch_route', 'orch_compare', 'orch_pipeline', 'orch_status',
       'dsh_author_inspect', 'dsh_author_define', 'dsh_author_run', 'dsh_author_validate', 'dsh_author_recover',
       'memo_classify', 'memo_format', 'memo_link', 'memo_scope', 'memo_archive', 'memo_review',

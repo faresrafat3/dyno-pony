@@ -137,7 +137,7 @@ test('ultimate: off action returns the disarm message', async () => {
 // so the expectation here never comes from ultimate.js's own list.
 // ---------------------------------------------------------------------------
 test('ultimate: the count follows the registry, not a literal', async () => {
-  const { registered } = mount('ultimate.js', { registry: ['ponytail', 'caveman', 'sphinx'] });
+  const { registered } = mount('ultimate.js', { registry: ['drift', 'caveman', 'sphinx'] });
   const blocks = await call(registered, 'ultimate', { action: 'status' });
   assert.ok(blocks[0].text.includes('Total tools in the arsenal: 3 of'),
     `expected a registry-derived count of 3, got:\n${blocks[0].text}`);
@@ -170,7 +170,6 @@ test('ultimate: status action returns the arsenal list', async () => {
   assert.ok(blocks[0].text.includes('sphinx'));
   assert.ok(blocks[0].text.includes('drift'));
   assert.ok(blocks[0].text.includes('second_order'));
-  assert.ok(blocks[0].text.includes('ponytail'));
   assert.ok(blocks[0].text.includes('caveman'));
   assert.ok(blocks[0].text.includes('orch_route'));
 });

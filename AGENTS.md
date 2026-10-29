@@ -1,7 +1,7 @@
 # dyno-pony, the agent mode + skill arsenal for DSH
 
 Fares-localized dynamic Cordis plugins, skills, and presets for the DeepSeek
-Harness. Verified state: **1 merged plugin, 38 tools, 14 dynamic skills,
+Harness. Verified state: **1 merged plugin, 37 tools, 13 dynamic skills,
 suite green.** Counts are derived from disk (`scripts/counts.cjs`) and
 cross-checked by `tests/preflight.test.cjs` (+`rebuild.sh`); a stale number
 turns the gate red. The oracle beats any prose line on disagreement.

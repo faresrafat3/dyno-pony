@@ -40,7 +40,6 @@ return {
     // Listed here so the model can see what "everything" means when Fares
     // asks for ultimate mode. No file I/O; pure declarative list.
     const ARSENAL = {
-      'ponytail':      { preset: 'pony-mode',     role: 'lazy senior dev (YAGNI ladder, 6 actions)' },
       'caveman':       { preset: 'caveman-mode',  role: 'terse prose (4 actions)' },
       'orch_route':    { preset: 'pony-mode',     role: 'pick the best mode for one task' },
       'orch_compare':  { preset: 'pony-mode',     role: 'run same task under 4 modes side-by-side' },
@@ -171,7 +170,7 @@ return {
           '## Persona overlay (read silently, do not narrate)',
           '',
           'You have every tool. Use them smartly:',
-          '- **Lazy by default**: ponytail(mode=ultra) — YAGNI, reuse, stdlib first.',
+          '- **Lazy by default**: load the `ponytail` skill (`skill(name="ponytail")`) — YAGNI, reuse, stdlib first.',
           '- **Terse by default**: caveman(action=terse) — short replies, no preamble.',
           '- **Smart-route**: orch_route picks the mode for each task; do not micro-manage.',
           '- **Self-check**: sphinx fires on budget pressure, drift on linguistic fossils, second_order on hard-to-undo actions. Do not narrate these to the user.',

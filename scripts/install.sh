@@ -47,4 +47,4 @@ echo
 echo "Activate in the DSH session (3 tool calls):"
 echo "  1. cordis_define kind=new idPrefix=dyno  with the loader host code from README §Recovery"
 echo "  2. cordis_run pluginId=<returned> packageId=<returned> mode=run"
-echo "  3. verify: cordis_inspect_query Tool listTools -> 38 dyno-pony tools"
+echo "  3. verify: cordis_inspect_query Tool listTools -> the bundle's tool count (printed above)"

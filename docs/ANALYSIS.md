@@ -120,7 +120,7 @@ the memory path; never touches source code or the DSH substrate.
 
 **Why:** the substrate has `SessionTelemetryBackend` for full session traces. dyno-pony has
 `orch_compare` which produces **arm outputs** (4-arm plan, file outputs). There is no
-**mode-flow trace** — "in this session, the model called `caveman(2)` then `ponytail(1)` then
+**mode-flow trace** — "in this session, the model called `caveman(2)` then `sphinx(1)` then
 `orch_route(1)`, in this order, producing these effects". That data is in the session log; no
 tool extracts just the mode-flow.
 
