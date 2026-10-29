@@ -41,10 +41,13 @@ const ORDER = [
 // the same lie, printed into the artifact instead of into the docs). Called
 // after the ORDER loop, so both numbers are measured, not remembered.
 const header = (origCount, ultimateCount) =>
-  "// Source-of-truth for the dyno-pony dynamic plugin (v1, merged).\n" +
+  "// Generated artifact for the dyno-pony dynamic plugin (v1, merged).\n" +
+  "// Built from packages/*.js by scripts/merge-plugins.cjs; do not edit.\n" +
+  "// Rebuild: npm run build. The bundle is not tracked in git.\n" +
   "//\n" +
-  "// Combines all 10 historical plugins (pony, caveman, orch, dsh-author, memo,\n" +
-  "// plugin-test, codex, memory, workflow, trace) into ONE plugin. Re-apply with:\n" +
+  "// Combines the 10 historical plugins (pony, caveman, orch, dsh-author, memo,\n" +
+  "// plugin-test, codex, memory, workflow, trace) plus four session sentinels\n" +
+  "// (sphinx, drift, second_order, ultimate) into ONE plugin. Re-apply with:\n" +
   "// Mount it with the loader in rebuild.sh / README.md §Recovery — never paste\n" +
   "// the file into the context.\n" +
   "//\n" +

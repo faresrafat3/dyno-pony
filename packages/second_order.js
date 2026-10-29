@@ -102,7 +102,7 @@ return {
             '',
             'Describe the change, then call again.',
             '',
-            'Example: second_order(action="blast", change="rm /home/fares/Projects/deepseek-harness/.agents/skills/dyno-pony", scope="workspace")',
+            'Example: second_order(action="blast", change="rm ~/Projects/dyno-pony/skills", scope="workspace")',
           ].join('\n'));
         }
         return note([

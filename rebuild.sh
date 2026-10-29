@@ -17,6 +17,10 @@ set -euo pipefail
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DSH="${DSH_HOME:-$HOME/.dsh}"
 
+# The bundle is generated, not tracked: a fresh clone has none, so build it
+# before counting. If it already exists, leave it alone — the suite may be
+# reading it concurrently (preflight spawns this script).
+[ -f "${SKILL_DIR}/packages/dyno-pony.js" ] || node "${SKILL_DIR}/scripts/merge-plugins.cjs" >/dev/null
 eval "$(node "${SKILL_DIR}/scripts/counts.cjs" --shell)"
 
 echo "[rebuild] dyno-pony plugin (merged)"
@@ -71,8 +75,8 @@ echo "  cordis_run  pluginId=<id> packageId=<pkg> mode=run     # on"
 echo ""
 echo "=== Where things live ==="
 echo ""
-echo "  Bundle (source of truth):  ${SKILL_DIR}/packages/dyno-pony.js"
-echo "  Sources, kept for diffing: ${SKILL_DIR}/packages/<name>.js       (${SOURCES} files)"
+echo "  Bundle (generated; not tracked): ${SKILL_DIR}/packages/dyno-pony.js"
+echo "  Sources (composed by the merge): ${SKILL_DIR}/packages/<name>.js  (${SOURCES} files)"
 echo "  Canonical dynamic skills:  ${SKILL_DIR}/dynamic-skills/<name>/SKILL.md  (${SKILLS})"
 echo "  Runtime deployment:        ${DSH}/skills|dyno-pony   (bash scripts/install.sh)"
 echo "  Presets:                   ${PRESET_DIR}   (${PRESETS} present; composition, not installed here)"

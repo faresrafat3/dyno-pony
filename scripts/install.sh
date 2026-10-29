@@ -21,7 +21,11 @@ DSH="${DSH_HOME:-$HOME/.dsh}"
 BUNDLE_SRC="$ROOT/packages/dyno-pony.js"
 BUNDLE_DST="$DSH/dyno-pony/packages/dyno-pony.js"
 
-[ -f "$BUNDLE_SRC" ] || { echo "FATAL: $BUNDLE_SRC missing — run scripts/merge-plugins.cjs first" >&2; exit 1; }
+# The bundle is generated and not tracked: build it from packages/*.js before
+# deploying, so a fresh clone installs the sources it actually has.
+node "$ROOT/scripts/merge-plugins.cjs"
+
+[ -f "$BUNDLE_SRC" ] || { echo "FATAL: $BUNDLE_SRC missing after merge" >&2; exit 1; }
 
 mkdir -p "$DSH/dyno-pony/packages" "$DSH/skills"
 cp "$BUNDLE_SRC" "$BUNDLE_DST"

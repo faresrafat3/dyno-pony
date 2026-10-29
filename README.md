@@ -8,7 +8,7 @@ Fares-localized dynamic Cordis plugins, skills, presets for DeepSeek Harness. **
 
 | Verb | Command | Meaning |
 |---|---|---|
-| **VERIFY** | `node --test tests/*.test.cjs` | bundle mounts, 38 tools, schemas pass the real host guard, docs agree with disk — also run by CI on push/PR (`.github/workflows/verify.yml`, Node 22 + 26) |
+| **VERIFY** | `npm test` | builds the bundle, then mounts it: 38 tools, schemas pass the real host guard, docs agree with disk — also run by CI on push/PR (`.github/workflows/verify.yml`, Node 22 + 26) |
 | **DRIVE** | mount the loader (§Recovery) | arsenal live in the session |
 | **ACCRETE** | `bash scripts/collect.sh --apply` | flow live skill fixes back into git |
 | **SHIP** | `bash scripts/install.sh` + commit + push | deploy runtime copies, version, publish |
@@ -16,8 +16,8 @@ Fares-localized dynamic Cordis plugins, skills, presets for DeepSeek Harness. **
 ## Layout — one home, one truth
 
 ```
-packages/dyno-pony.js   merged bundle: 38 tools, one apply(), one disposer  ← the source of truth
-packages/*.js           the 14 originals, kept for diffing + the merge script
+packages/*.js           the 14 originals — the sources the merge composes
+packages/dyno-pony.js   generated bundle: 38 tools, one apply(), one disposer (built by `npm run build`)
 dynamic-skills/         canonical copies of the 14 plugin skills (runtime gets copies)
 skills/                 prose skills that need no plugin
 tests/                  mount/conformance tests + preflight.test.cjs (the oracle)
@@ -47,7 +47,7 @@ Repo = canonical; runtime (`~/.dsh/skills/`, `~/.dsh/dyno-pony/`) = `scripts/ins
 
 Plugin is process-local: restart removes all 38 tools; restore = three calls.
 
-Bundle lookup (oracle asserts ≥1 exists): `~/.dsh/dyno-pony/packages/dyno-pony.js` (deployed by install.sh) → `~/Projects/dyno-pony/packages/dyno-pony.js` (canonical) → `~/Projects/deepseek-harness/.agents/skills/dyno-pony/packages/dyno-pony.js` (legacy).
+Bundle lookup (oracle asserts ≥1 exists): `~/.dsh/dyno-pony/packages/dyno-pony.js` (deployed by install.sh) → `~/Projects/dyno-pony/packages/dyno-pony.js` (canonical; `npm run build` creates it).
 
 **1. Define the loader** (`cordis_define`, `kind=new`, `idPrefix=dyno`, host code below — ~700 bytes, reads the bundle from disk at apply time, tries deployed copy first):
 
@@ -55,7 +55,6 @@ Bundle lookup (oracle asserts ≥1 exists): `~/.dsh/dyno-pony/packages/dyno-pony
 const CANDIDATES = [
   (process.env.DSH_HOME || (process.env.HOME || '') + '/.dsh') + '/dyno-pony/packages/dyno-pony.js',
   (process.env.HOME || '') + '/Projects/dyno-pony/packages/dyno-pony.js',
-  (process.env.HOME || '') + '/Projects/deepseek-harness/.agents/skills/dyno-pony/packages/dyno-pony.js',
 ]
 
 return {
@@ -90,11 +89,13 @@ return {
 
 ## Rebuilding the bundle
 
+The bundle is generated and **not tracked**. A fresh clone builds it with
+`npm run build`; `npm test` and `scripts/install.sh` run that build for you.
 After editing any `packages/*.js` original:
 
 ```
-node scripts/merge-plugins.cjs        # rebuild packages/dyno-pony.js
-node --test tests/*.test.cjs          # oracle must stay green
+npm run build                         # rebuild packages/dyno-pony.js
+npm test                              # oracle must stay green
 bash scripts/install.sh               # redeploy to the runtime
 ```
 

@@ -6,7 +6,7 @@
 
 | Path | Why | Enforced by |
 |---|---|---|
-| `packages/dyno-pony.js` | **Generated** by `scripts/merge-plugins.cjs` — a hand edit is lost on the next rebuild | the merge script + oracle |
+| `packages/dyno-pony.js` | **Generated** by `scripts/merge-plugins.cjs` — a hand edit is lost on the next rebuild; **not tracked** (`npm run build` creates it) | the merge script + oracle |
 | `tests/preflight.test.cjs` | The oracle. A red line means the docs are lying — fix the red line, not the test (E2) | preflight itself |
 | `scripts/counts.cjs` | Single derivation home for headline counts — a wrong number makes every document lie | preflight (cross-checks vs mounted bundle) |
 | `~/.dsh/skills/**`, `~/.dsh/dyno-pony/**` | Runtime **deployment**, not source. Live fixes flow back with `scripts/collect.sh --apply` (E3) | install/collect scripts |
@@ -18,11 +18,11 @@
 ## The gate
 
 ```
-node --test tests/preflight.test.cjs   # alive + true: bundle parses, the mounted tool set matches
-                                       # the derived count, schemas pass the real host guard,
-                                       # rebuild.sh's numbers match disk, docs agree with disk
-node --test tests/*.test.cjs           # full suite (the runner prints its own count)
-node scripts/suite-count.cjs           # the count invariant: re-runs every test file and compares the
+npm run test:preflight                 # builds the bundle, then: alive + true — bundle parses,
+                                       # the mounted tool set matches the derived count, schemas
+                                       # pass the real host guard, rebuild.sh's numbers match disk
+npm test                               # builds the bundle, then the full suite
+npm run test:count                     # the count invariant: re-runs every test file and compares the
                                        # per-file totals by EQUALITY vs tests/expected-suite.json
 ```
 
