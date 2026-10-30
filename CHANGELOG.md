@@ -3,6 +3,14 @@
 All notable changes to the dyno-pony arsenal. English only (E8: Arabic is for chat,
 English for the record).
 
+## [Unreleased] — 2026-10-30
+
+### Fixed
+- **The memory tools no longer name one machine's home.** `packages/memory.js` resolves
+  `$DSH_HOME`, then `$HOME/.dsh`; with neither set it returns a loud error instead of using
+  `/home/fares`. The read/search fallbacks use the same resolved root. The `dsh-plugins`
+  bundle is regenerated from this source.
+
 ## [Unreleased] — 2026-10-29
 
 ### Removed

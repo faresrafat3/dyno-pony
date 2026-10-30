@@ -33,8 +33,11 @@ return {
 
     const SCOPES = ['per-agent', 'per-group', 'per-company', 'global'];
     const RANK = { 'per-agent': 0, 'per-group': 1, 'per-company': 2, 'global': 3 };
-    const HOME = (typeof process !== 'undefined' && process.env && process.env.DSH_HOME) || '/home/fares/.dsh';
-    const MEMORY_ROOT = HOME + '/memory';
+    const HOME = (typeof process !== 'undefined' && process.env)
+      ? (process.env.DSH_HOME || (process.env.HOME ? process.env.HOME + '/.dsh' : ''))
+      : '';
+    const MEMORY_ROOT = HOME ? HOME + '/memory' : '';
+    const ROOT_ERROR = MEMORY_ROOT ? null : 'memory: set DSH_HOME or HOME so notes have a home';
 
     const fs = ctx.get('fs');
     const fsReady = !!(fs && typeof fs.readText === 'function' && typeof fs.writeText === 'function' && typeof fs.listDir === 'function');
@@ -67,6 +70,7 @@ return {
       },
       output: stringOutput,
       execute: function (_args, params) {
+        if (ROOT_ERROR) return ROOT_ERROR;
         const scope = SCOPES.indexOf(params.scope) >= 0 ? params.scope : 'per-agent';
         if (!fsReady) {
           return note('mem_write unavailable: ctx.fs is not reachable from this dynamic plugin. As a fallback, the model should use the native `write` tool to create the file directly at `' + notePath(scope, params.title) + '`. The expected body is:\n\n---\n\n' + '# ' + params.title + '\n\n' + params.body + '\n\n---\n\n[memory] would also add a frontmatter: `<!-- memory: scope=' + scope + ' tags=' + (params.tagsCsv || '') + ' date=' + today() + ' -->`');
@@ -91,12 +95,13 @@ return {
       },
       output: stringOutput,
       execute: function (_args, params) {
+        if (ROOT_ERROR) return ROOT_ERROR;
         const scope = SCOPES.indexOf(params.scope) >= 0 ? params.scope : 'per-agent';
         const k = Math.max(1, Math.min(50, parseInt(params.k || '5', 10) || 5));
         if (!fsReady) {
-          return note('mem_read unavailable: ctx.fs is not reachable from this dynamic plugin. As a fallback, the model should run `ls -t ~/.dsh/memory/' + scope + '/ | head -' + k + '` via bash, then call `read` on the top entries.');
+          return note('mem_read unavailable: ctx.fs is not reachable from this dynamic plugin. As a fallback, the model should run `ls -t ' + MEMORY_ROOT + '/' + scope + '/ | head -' + k + '` via bash, then call `read` on the top entries.');
         }
-        return note('mem_read will list ~/.dsh/memory/' + scope + '/ sorted by mtime desc, take top ' + k + ', then read each body.\n\nThe model should run:\n  bash: ls -1t ~/.dsh/memory/' + scope + '/ | head -' + k + '\n  then: read each file in the list');
+        return note('mem_read will list ' + MEMORY_ROOT + '/' + scope + '/ sorted by mtime desc, take top ' + k + ', then read each body.\n\nThe model should run:\n  bash: ls -1t ' + MEMORY_ROOT + '/' + scope + '/ | head -' + k + '\n  then: read each file in the list');
       },
     });
 
@@ -117,12 +122,13 @@ return {
       },
       output: stringOutput,
       execute: function (_args, params) {
+        if (ROOT_ERROR) return ROOT_ERROR;
         const scope = params.scope || 'per-agent';
         const k = Math.max(1, Math.min(50, parseInt(params.k || '10', 10) || 10));
         if (!fsReady) {
-          return note('mem_search unavailable: ctx.fs is not reachable from this dynamic plugin. As a fallback:\n\n  bash: grep -ril "' + params.query + '" ~/.dsh/memory/' + scope + '/ | head -' + k + '\n  then: read each match');
+          return note('mem_search unavailable: ctx.fs is not reachable from this dynamic plugin. As a fallback:\n\n  bash: grep -ril "' + params.query + '" ' + MEMORY_ROOT + '/' + scope + '/ | head -' + k + '\n  then: read each match');
         }
-        return note('mem_search will grep for "' + params.query + '" under ~/.dsh/memory/' + scope + '/ (or all scopes), sort by mtime, take top ' + k + '.\n\nThe model should run:\n  bash: grep -rli "' + params.query + '" ~/.dsh/memory/' + scope + '/ 2>/dev/null | head -' + k);
+        return note('mem_search will grep for "' + params.query + '" under ' + MEMORY_ROOT + '/' + scope + '/ (or all scopes), sort by mtime, take top ' + k + '.\n\nThe model should run:\n  bash: grep -rli "' + params.query + '" ' + MEMORY_ROOT + '/' + scope + '/ 2>/dev/null | head -' + k);
       },
     });
 
@@ -142,6 +148,7 @@ return {
       },
       output: stringOutput,
       execute: function (_args, params) {
+        if (ROOT_ERROR) return ROOT_ERROR;
         const from = params.notePath;
         const to = params.toScope;
         // Determine current scope from path.
